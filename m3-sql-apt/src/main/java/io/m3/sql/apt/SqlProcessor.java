@@ -6,7 +6,9 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,12 +56,14 @@ public final class SqlProcessor extends AbstractProcessor {
 
         this.processingEnvironment.getMessager().printMessage(Diagnostic.Kind.NOTE, "Number of Pojo(s) found : " + descriptors.size());
 
-        new PojoImplementationGenerator().generate(this.processingEnv, descriptors);
-        new PojoFactoryGenerator().generate(this.processingEnv, descriptors);
-        new PojoDescriptorGenerator().generate(this.processingEnv, descriptors);
-        new RepositoryGenerator().generate(this.processingEnv, descriptors);
-        new MapperGenerator().generate(this.processingEnv, descriptors);
-        new PojoMapperFactoryGenerator().generate(this.processingEnv, descriptors);
+        Map<String, Object> properties = new HashMap<>();
+
+        new PojoImplementationGenerator().generate(this.processingEnv, descriptors, properties);
+        new PojoFactoryGenerator().generate(this.processingEnv, descriptors, properties);
+        new PojoDescriptorGenerator().generate(this.processingEnv, descriptors, properties);
+        new RepositoryGenerator().generate(this.processingEnv, descriptors, properties);
+        new MapperGenerator().generate(this.processingEnv, descriptors, properties);
+        new PojoMapperFactoryGenerator().generate(this.processingEnv, descriptors, properties);
 
     }
 

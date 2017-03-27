@@ -8,10 +8,10 @@ import io.m3.sql.expression.Expressions;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
-import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
+import java.util.Map;
 
 import static io.m3.sql.apt.Helper.*;
 
@@ -21,7 +21,7 @@ import static io.m3.sql.apt.Helper.*;
 final class RepositoryGenerator implements Generator {
 
     @Override
-    public void generate(ProcessingEnvironment processingEnvironment, List<PojoDescriptor> descriptors) {
+    public void generate(ProcessingEnvironment processingEnvironment, List<PojoDescriptor> descriptors, Map<String, Object> properties) {
 
         // generate Implementation class;
         descriptors.forEach(t -> {
@@ -170,6 +170,7 @@ final class RepositoryGenerator implements Generator {
         generateMethodFindById(writer, descriptor);
         generateMethodInsert(writer, descriptor);
         generateMethodUpdate(writer, descriptor);
+        generateMethodBatch(writer, descriptor);
     }
 
     private static void generateMethodFindById(Writer writer, PojoDescriptor descriptor) throws IOException {
@@ -250,4 +251,24 @@ final class RepositoryGenerator implements Generator {
 
     }
 
+    private static void generateMethodBatch(Writer writer, PojoDescriptor descriptor) throws IOException {
+
+        writeNewLine(writer);
+        writer.write("    public final void batch(");
+        writer.write(descriptor.element().toString());
+        writer.write(" pojo) {");
+
+
+        writeNewLine(writer);
+        writer.write("         // add to batch");
+        writeNewLine(writer);
+        writer.write("         addBatch(this.insert, Mappers.");
+        writer.write(toUpperCase(descriptor.element().getSimpleName().toString()));
+        writer.write(", pojo);");
+
+        writeNewLine(writer);
+        writer.write("    }");
+        writeNewLine(writer);
+
+    }
 }

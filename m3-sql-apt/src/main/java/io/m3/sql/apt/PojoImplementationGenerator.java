@@ -6,6 +6,7 @@ import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
+import java.util.Map;
 
 import static io.m3.sql.apt.Helper.*;
 import static io.m3.sql.apt.Helper.writeNewLine;
@@ -16,7 +17,7 @@ import static io.m3.sql.apt.Helper.writeNewLine;
 final class PojoImplementationGenerator implements Generator {
 
     @Override
-    public void generate(ProcessingEnvironment processingEnvironment, List<PojoDescriptor> descriptors) {
+    public void generate(ProcessingEnvironment processingEnvironment, List<PojoDescriptor> descriptors, Map<String, Object> properties) {
 
         // generate Implementation class;
         descriptors.forEach(t -> {

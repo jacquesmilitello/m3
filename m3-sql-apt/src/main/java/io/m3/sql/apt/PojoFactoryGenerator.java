@@ -17,7 +17,7 @@ import static io.m3.sql.apt.Helper.*;
  */
 final class PojoFactoryGenerator implements Generator {
 
-    public void generate(ProcessingEnvironment env, List<PojoDescriptor> descriptors) {
+    public void generate(ProcessingEnvironment env, List<PojoDescriptor> descriptors, Map<String, Object> properties) {
         Map<String, List<PojoDescriptor>> packages = analyse(env, descriptors);
         for (Map.Entry<String, List<PojoDescriptor>> entry : packages.entrySet()) {
             try {

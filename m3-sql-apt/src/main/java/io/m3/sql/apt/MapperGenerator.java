@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import static io.m3.sql.apt.Helper.*;
 
@@ -20,7 +21,7 @@ import static io.m3.sql.apt.Helper.*;
 final class MapperGenerator implements Generator {
 
     @Override
-    public void generate(ProcessingEnvironment processingEnvironment, List<PojoDescriptor> descriptors) {
+    public void generate(ProcessingEnvironment processingEnvironment, List<PojoDescriptor> descriptors, Map<String, Object> properties) {
 
         // generate Implementation class;
         descriptors.forEach(t -> {

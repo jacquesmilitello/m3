@@ -13,6 +13,7 @@ import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
+import java.util.Map;
 
 import static io.m3.sql.apt.Helper.*;
 
@@ -21,40 +22,33 @@ import static io.m3.sql.apt.Helper.*;
  */
 final class PojoDescriptorGenerator implements Generator {
 
+    /**
+     * key for properties (holder of all aliases generated).
+     */
+    public static final String KEY = "pojo.descriptor";
+
     @Override
-    public void generate(ProcessingEnvironment processingEnvironment, List<PojoDescriptor> descriptors) {
+    public void generate(ProcessingEnvironment processingEnvironment, List<PojoDescriptor> descriptors, Map<String, Object> properties) {
 
         // generate Implementation class;
         descriptors.forEach(t -> {
             try {
-                generate(processingEnvironment, t);
+                generate(processingEnvironment, t, properties);
             } catch (IOException cause) {
                 processingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "PojoImplementationGenerator -> IOException for [" + t + "] -> [" + cause.getMessage() + "]");
             }
         });
 
-
-      /*  Map<String, List<PojoDescriptor>> packages = analyse(env, descriptors);
-
-        for (Map.Entry<String, List<PojoDescriptor>> entry : packages.entrySet()) {
-
-            try {
-                create(env, entry.getKey(), entry.getValue());
-            } catch (IOException cause) {
-                env.getMessager().printMessage(Diagnostic.Kind.ERROR, "PojoDescriptorGenerator -> IOException for [" + entry + "] -> [" + cause.getMessage() + "]");
-            }
-
-        }*/
     }
 
-    private void generate(ProcessingEnvironment env, PojoDescriptor descriptor) throws IOException {
+    private void generate(ProcessingEnvironment env, PojoDescriptor descriptor, Map<String, Object> properties) throws IOException {
 
         JavaFileObject object = env.getFiler().createSourceFile(descriptor.fullyQualidiedClassName() + "Descriptor");
         Writer writer = object.openWriter();
 
         writeHeader(writer, env, descriptor);
         writeConstructor(writer, descriptor);
-        writeTable(writer, descriptor);
+        writeTable(writer, descriptor, properties);
         writePrimaryKeys(writer, descriptor);
         writeProperties(writer, descriptor);
         writeAllColumns(writer, descriptor);
@@ -85,7 +79,7 @@ final class PojoDescriptorGenerator implements Generator {
         writeNewLine(writer);
     }
 
-    private static void writeTable(Writer writer, PojoDescriptor descriptor) throws IOException {
+    private static void writeTable(Writer writer, PojoDescriptor descriptor, Map<String, Object> properties) throws IOException {
         writeNewLine(writer);
         writer.write("    // SQL TABLE DESCRIPTOR");
         writeNewLine(writer);
@@ -95,6 +89,8 @@ final class PojoDescriptorGenerator implements Generator {
         writer.write(io.m3.sql.desc.SqlTable.class.getName());
         writer.write("(\"");
         writer.write(descriptor.element().getAnnotation(Table.class).value());
+        writer.write("\", \"");
+        writer.write(generateAlias(properties));
         writer.write("\");");
         writeNewLine(writer);
     }
@@ -112,7 +108,7 @@ final class PojoDescriptorGenerator implements Generator {
             writer.write(toUpperCase(descriptor.ids().get(0).name()));
             writer.write(" = new ");
             writer.write(io.m3.sql.desc.SqlPrimaryKey.class.getName());
-            writer.write("(\"");
+            writer.write("(TABLE, \"");
             writer.write(descriptor.ids().get(0).getter().getAnnotation(PrimaryKey.class).value());
             writer.write("\");");
             writeNewLine(writer);
@@ -186,5 +182,39 @@ final class PojoDescriptorGenerator implements Generator {
         writer.write(");");
         writeNewLine(writer);
 
+    }
+
+    private static String generateAlias(Map<String, Object> properties) {
+
+        String current = (String) properties.get(KEY);
+
+        if (current == null) {
+            properties.put(KEY, "a");
+            return "a";
+        }
+
+        if ("z".equals(current)) {
+            properties.put(KEY, "aa");
+            return "aa";
+        }
+
+        if ("zz".equals(current)) {
+            properties.put(KEY, "aaa");
+            return "aaa";
+        }
+
+        if ("zzz".equals(current)) {
+            properties.put(KEY, "aaaa");
+            return "aaaa";
+        }
+
+        StringBuilder builder = new StringBuilder();
+
+        if (current.length() > 1) {
+            builder.append(current.substring(0, current.length()-2));
+        }
+        builder.append((char)(current.charAt(current.length()-1)+1));
+
+        return builder.toString();
     }
 }

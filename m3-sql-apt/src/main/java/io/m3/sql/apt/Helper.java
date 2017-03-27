@@ -94,6 +94,14 @@ final class Helper {
             return "setShort";
         }
 
+        if ("java.lang.String".equals(type)) {
+            return "setString";
+        }
+
+        if ("java.sql.Date".equals(type)) {
+            return "setDate";
+        }
+
         throw new UnsupportedOperationException("Helper.preparedStatementSetter -> type not supported -> [" + type + "]");
     }
 
@@ -113,6 +121,14 @@ final class Helper {
 
         if ("short".equals(type) || "java.lang.Short".equals(type)) {
             return "getShort";
+        }
+
+        if ("java.lang.String".equals(type)) {
+            return "getString";
+        }
+
+        if ("java.sql.Date".equals(type)) {
+            return "getDate";
         }
 
         throw new UnsupportedOperationException("Helper.preparedStatementSetter -> type not supported -> [" + type + "]");

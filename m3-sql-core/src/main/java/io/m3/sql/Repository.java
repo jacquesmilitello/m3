@@ -9,11 +9,13 @@ import io.m3.sql.jdbc.*;
 import io.m3.sql.tx.Transaction;
 import io.m3.sql.tx.TransactionException;
 import io.m3.sql.tx.TransactionManager;
+import io.m3.sql.tx.TransactionManagerImpl;
 import io.m3.util.ImmutableList;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.ServiceLoader;
 
 /**
@@ -112,6 +114,7 @@ public abstract class Repository {
         try {
             val = ps.executeUpdate();
         } catch (SQLException cause) {
+            cause.printStackTrace();
             //throw CoreSqlAnalyser.analyse(cause);
             return;
         }
@@ -122,4 +125,35 @@ public abstract class Repository {
 
     }
 
+    protected final <E> void addBatch(String sql, InsertMapper<E> im, E pojo) {
+
+        PreparedStatement ps = database.transactionManager().current().batch(sql);
+
+        try {
+            im.insert(ps, pojo);
+        } catch (SQLException cause) {
+            throw new InsertMapperException(sql, im, pojo, cause);
+        }
+
+        try {
+            ps.addBatch();
+        } catch (SQLException cause) {
+            cause.printStackTrace();
+            return;
+        }
+    }
+
+    public final void executeBatch() {
+
+        Iterable<PreparedStatement> statements = database.transactionManager().current().getBatchs();
+
+        for (PreparedStatement ps : statements) {
+            try {
+                ps.executeBatch();
+            } catch (SQLException cause) {
+                cause.printStackTrace();
+                // throw CoreSqlAnalyser.analyse(cause);
+            }
+        }
+    }
 }

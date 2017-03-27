@@ -18,10 +18,12 @@ class AbstractBuilder {
         return this.database;
     }
 
-    protected final String table(SqlTable table) {
+    protected final String table(SqlTable table, boolean alias) {
 
         if (database.isMonoSchema()) {
-            return this.database.dialect().table(table);
+            StringBuilder builder = new StringBuilder();
+            this.database.dialect().wrap(builder, table, alias);
+            return builder.toString();
         }
 
         return null;

@@ -6,6 +6,7 @@ import io.m3.sql.apt.ex001.Factory;
 import io.m3.sql.apt.ex001.Student;
 import io.m3.sql.apt.ex001.StudentAbstractRepository;
 import io.m3.sql.dialect.H2Dialect;
+import io.m3.sql.impl.DatabaseImpl;
 import io.m3.sql.tx.Transaction;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.tools.RunScript;
@@ -24,7 +25,7 @@ public class StudentTest {
     @Before
     public void before() throws Exception {
         ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
-        database = new Database(ds, new H2Dialect(), "");
+        database = new DatabaseImpl(ds, new H2Dialect(), "");
         RunScript.execute(ds.getConnection(), new InputStreamReader(StudentTest.class.getResourceAsStream("/V00000001__ex001.sql")));
 
     }

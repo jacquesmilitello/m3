@@ -3,7 +3,7 @@ package io.m3.sql.expression;
 import io.m3.sql.desc.SqlColumn;
 
 /**
- * Created by jmilitello on 23/03/2017.
+ * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
 public class Expressions {
 
@@ -14,4 +14,11 @@ public class Expressions {
         return new SimpleExpression(column, "=");
     }
 
+    public static Expression and(Expression left, Expression right, Expression... others) {
+        return new LogicalExpression("AND", left, right, others);
+    }
+
+    public static Expression or(Expression left, Expression right, Expression... others) {
+        return new LogicalExpression("OR", left, right, others);
+    }
 }

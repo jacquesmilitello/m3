@@ -3,6 +3,7 @@ package io.m3.sql.tx;
 
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
+import java.util.Iterator;
 
 public interface Transaction extends AutoCloseable {
 
@@ -21,4 +22,8 @@ public interface Transaction extends AutoCloseable {
     PreparedStatement insert(String sql);
 
     PreparedStatement update(String sql);
+
+    PreparedStatement batch(String sql);
+
+    Iterable<PreparedStatement> getBatchs();
 }

@@ -1,5 +1,6 @@
 package io.m3.sql;
 
+import io.m3.sql.impl.DatabaseImpl;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Test;
 
@@ -15,7 +16,7 @@ public class DatabaseTest {
 
         DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
 
-        Database database = new Database(ds, null, "test");
+        Database database = new DatabaseImpl(ds, null, "test");
     }
 
 }

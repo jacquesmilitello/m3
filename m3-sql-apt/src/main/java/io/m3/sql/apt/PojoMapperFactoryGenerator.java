@@ -49,7 +49,7 @@ final class PojoMapperFactoryGenerator implements Generator {
             writer.write(desc.element().toString());
             writer.write("> ");
 
-            writer.write(Helper.toUpperCase(desc.element().getSimpleName().toString()));
+            writer.write(toUpperCase(desc.element().getSimpleName().toString()));
 
             writer.write(" = new ");
             writer.write(desc.element().getSimpleName().toString());

@@ -15,6 +15,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="m3sqlcore" />
     <orderEntry type="module" module-name="m3-util" />
+    <orderEntry type="library" name="Maven: it.unimi.dsi:fastutil:7.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.25" level="project" />
     <orderEntry type="module" module-name="m3sqlapt" />
     <orderEntry type="module" module-name="m3-test" />

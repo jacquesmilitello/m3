@@ -1,5 +1,6 @@
 package io.m3.sql.apt;
 
+import io.m3.sql.annotation.Column;
 import io.m3.sql.jdbc.Mapper;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -116,6 +117,19 @@ final class MapperGenerator implements Generator {
             writer.write("" + index++);
             writer.write("));");
             writeNewLine(writer);
+
+            if (ppd.getter().getAnnotation(Column.class).nullable() && isLinkToPrimitive(ppd.getter().getReturnType().toString())) {
+                writer.write("        if (rs.wasNull()) {");
+                writeNewLine(writer);
+                writer.write("            pojo.");
+                writer.write(ppd.setter().getSimpleName().toString());
+                writer.write("(null);");
+                writeNewLine(writer);
+                writer.write("        }");
+                writeNewLine(writer);
+            }
+
+
         }
 
         writer.write("        return pojo;");
@@ -179,7 +193,7 @@ final class MapperGenerator implements Generator {
         }
 
         // for the where
-        writer.write("    //set primary key");
+        writer.write("        //set primary key");
         writeNewLine(writer);
         for (PojoPropertyDescriptor ppd : descriptor.ids()) {
             writePsProperty(writer, ppd, index++);
@@ -192,6 +206,17 @@ final class MapperGenerator implements Generator {
     }
 
     private static void writePsProperty(Writer writer, PojoPropertyDescriptor ppd, int index) throws IOException {
+
+        Column column = ppd.getter().getAnnotation(Column.class);
+
+        if (column != null && column.nullable()) {
+            writer.write("        if (pojo.");
+            writer.write(ppd.getter().toString());
+            writer.write(" != null) {");
+            writeNewLine(writer);
+            writer.write("    ");
+        }
+
         writer.write("        ps.");
         writer.write(preparedStatementSetter(ppd.getter().getReturnType().toString()));
         writer.write("(");
@@ -200,5 +225,31 @@ final class MapperGenerator implements Generator {
         writer.write(" pojo.");
         writer.write(ppd.getter().getSimpleName().toString());
         writer.write("());");
+
+        if (column != null && column.nullable()) {
+            writeNewLine(writer);
+            writer.write("        } else {");
+            writeNewLine(writer);
+            writer.write("            ps.setNull(");
+            writer.write("" + index);
+            writer.write(", ");
+            writer.write(nullableType(ppd.getter().getReturnType().toString()));
+            writer.write(");");
+            writeNewLine(writer);
+            writer.write("        }");
+        }
     }
+
+
+    private static boolean isLinkToPrimitive(String type) {
+
+        return ("java.lang.Integer".equals(type) ||
+                "java.lang.Long".equals(type) ||
+                "java.lang.Short".equals(type) ||
+                "java.lang.Byte".equals(type) ||
+                "java.lang.Double".equals(type) ||
+                "java.lang.Float".equals(type));
+
+    }
+
 }

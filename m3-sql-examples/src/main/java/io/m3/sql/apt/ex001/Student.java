@@ -16,4 +16,10 @@ public interface Student {
     Integer getAge();
 
     void setAge(Integer integer);
+
+    @Column(value= "overall_rating" , nullable = true)
+    Long getOverallRating();
+
+    void setOverallRating(Long value);
+
 }

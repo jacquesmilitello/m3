@@ -3,6 +3,7 @@ package io.m3.sql.apt;
 import javax.annotation.processing.ProcessingEnvironment;
 import java.io.IOException;
 import java.io.Writer;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -119,8 +120,8 @@ final class Helper {
             return "getShort";
         }
 
-        if ("short".equals(type) || "java.lang.Short".equals(type)) {
-            return "getShort";
+        if ("byte".equals(type) || "java.lang.Byte".equals(type)) {
+            return "getByte";
         }
 
         if ("java.lang.String".equals(type)) {
@@ -132,5 +133,34 @@ final class Helper {
         }
 
         throw new UnsupportedOperationException("Helper.preparedStatementSetter -> type not supported -> [" + type + "]");
+    }
+
+    public static boolean isNullableType(String type) {
+        if ("int".equals(type) || "short".equals(type) || "long".equals(type) || "byte".equals(type) || "int".equals(type)) {
+            return false;
+        }
+        return true;
+    }
+
+    public static String nullableType(String type) {
+
+        if ( "java.lang.Integer".equals(type)) {
+            return "java.sql.Types.INTEGER";
+        }
+
+        if ("java.lang.Long".equals(type)) {
+            return "java.sql.Types.BIGINT";
+        }
+
+        if ("short".equals(type) || "java.lang.Short".equals(type)) {
+            return "java.sql.Types.SMALLINT";
+        }
+
+        if ("byte".equals(type) || "java.lang.Byte".equals(type)) {
+            return"java.sql.Types.TINYINT";
+        }
+
+        throw new UnsupportedOperationException("Helper.nullableType -> type not supported -> [" + type + "]");
+
     }
 }

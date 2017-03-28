@@ -18,4 +18,12 @@ public @interface Column {
      */
     String value();
 
+    /**
+     * To mark this column nullable. (only if type is an object and not a primitive).
+     *
+     * @return true if the column is nullable.
+     */
+    boolean nullable() default false;
+
+
 }

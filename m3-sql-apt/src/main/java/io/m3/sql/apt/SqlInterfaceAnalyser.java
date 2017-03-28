@@ -59,6 +59,13 @@ final class SqlInterfaceAnalyser implements Function<Element, PojoDescriptor> {
                 if (column == null) {
                     this.messager.printMessage(Diagnostic.Kind.ERROR, "getter [" + method + "] in [" + element + "] should have @Column.");
                 } else {
+
+                    // check if column nullable.
+                    if (column.nullable() && !Helper.isNullableType(executableElement.getReturnType().toString())) {
+                        this.messager.printMessage(Diagnostic.Kind.ERROR, "getter [" + method + "] in [" + element + "] indicate a nullable type [" + executableElement.getReturnType() + "] -> it's not a nullable type.");
+                    }
+
+
                     ppds.add(new PojoPropertyDescriptor(executableElement));
                 }
                 continue;

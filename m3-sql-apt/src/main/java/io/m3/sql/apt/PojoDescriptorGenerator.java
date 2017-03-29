@@ -125,6 +125,8 @@ final class PojoDescriptorGenerator implements Generator {
 
         for (PojoPropertyDescriptor ppd : descriptor.properties()) {
 
+            Column column = ppd.getter().getAnnotation(Column.class);
+
             writer.write("    public static final ");
             writer.write(SqlSingleColumn.class.getName());
             writer.write(" ");
@@ -132,8 +134,14 @@ final class PojoDescriptorGenerator implements Generator {
             writer.write(" = new ");
             writer.write(SqlSingleColumn.class.getName());
             writer.write("(TABLE, \"");
-            writer.write(ppd.getter().getAnnotation(Column.class).value());
-            writer.write("\");");
+            writer.write(column.value());
+            writer.write("\", ");
+            writer.write("" + column.nullable());
+            writer.write(", ");
+            writer.write("" + column.insertable());
+            writer.write(", ");
+            writer.write("" + column.updatable());
+            writer.write(");");
             writeNewLine(writer);
         }
 

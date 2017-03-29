@@ -22,17 +22,17 @@ public class SelectBuilderTest {
     private static final SqlTable TABLE_T2 = new SqlTable("T2", "b");
     private static final SqlTable TABLE_T3 = new SqlTable("T3", "c");
 
-    private static final SqlColumn COL_T1_01 = new SqlSingleColumn(TABLE_T1, "col_T1_01");
-    private static final SqlColumn COL_T1_02 = new SqlSingleColumn(TABLE_T1, "col_T1_02");
-    private static final SqlColumn COL_T1_03 = new SqlSingleColumn(TABLE_T1, "col_T1_03");
+    private static final SqlColumn COL_T1_01 = new SqlSingleColumn(TABLE_T1, "col_T1_01", false, true,true);
+    private static final SqlColumn COL_T1_02 = new SqlSingleColumn(TABLE_T1, "col_T1_02", false, true,true);
+    private static final SqlColumn COL_T1_03 = new SqlSingleColumn(TABLE_T1, "col_T1_03", false, true,true);
 
-    private static final SqlColumn COL_T2_01 = new SqlSingleColumn(TABLE_T2, "col_T2_01");
-    private static final SqlColumn COL_T2_02 = new SqlSingleColumn(TABLE_T2, "col_T2_02");
-    private static final SqlColumn COL_T2_03 = new SqlSingleColumn(TABLE_T2, "col_T2_03");
+    private static final SqlColumn COL_T2_01 = new SqlSingleColumn(TABLE_T2, "col_T2_01", false, true,true);
+    private static final SqlColumn COL_T2_02 = new SqlSingleColumn(TABLE_T2, "col_T2_02", false, true,true);
+    private static final SqlColumn COL_T2_03 = new SqlSingleColumn(TABLE_T2, "col_T2_03", false, true,true);
 
-    private static final SqlColumn COL_T3_01 = new SqlSingleColumn(TABLE_T3, "col_T3_01");
-    private static final SqlColumn COL_T3_02 = new SqlSingleColumn(TABLE_T3, "col_T3_02");
-    private static final SqlColumn COL_T3_03 = new SqlSingleColumn(TABLE_T3, "col_T3_03");
+    private static final SqlColumn COL_T3_01 = new SqlSingleColumn(TABLE_T3, "col_T3_01", false, true,true);
+    private static final SqlColumn COL_T3_02 = new SqlSingleColumn(TABLE_T3, "col_T3_02", false, true,true);
+    private static final SqlColumn COL_T3_03 = new SqlSingleColumn(TABLE_T3, "col_T3_03", false, true,true);
 
     private Database database;
 

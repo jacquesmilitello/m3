@@ -17,9 +17,18 @@ public abstract class SqlColumn {
      */
     private final String name;
 
-    public SqlColumn(SqlTable table, String name) {
+    private final boolean nullable;
+
+    private final boolean insertable;
+
+    private final boolean updatable;
+
+    public SqlColumn(SqlTable table, String name, boolean nullable, boolean insertable, boolean updatable) {
         this.table = table;
         this.name = name;
+        this.nullable = nullable;
+        this.insertable = insertable;
+        this.updatable = updatable;
     }
 
     public String name() {

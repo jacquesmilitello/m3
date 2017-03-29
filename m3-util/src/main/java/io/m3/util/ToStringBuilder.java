@@ -165,7 +165,7 @@ public final class ToStringBuilder {
     	if (!appendNull && value == null) {
     		return this;
     	}
-    	insert(key).insert("=[").insert(value == null ? NULL : value).insert("] ");
+    	insert(key).insert("=[").insert(value).insert("] ");
         return this;
     }
 
@@ -294,7 +294,7 @@ public final class ToStringBuilder {
 		if (newCount > value.length) {
 			expandCapacity(newCount);
 		}
-		System.arraycopy(value, 0, value, index, value.length);
+		System.arraycopy(value, 0, this.value, index, value.length);
 		index = newCount;
 		return this;
 	}

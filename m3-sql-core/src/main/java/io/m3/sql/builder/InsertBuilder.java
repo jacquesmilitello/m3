@@ -2,7 +2,6 @@ package io.m3.sql.builder;
 
 import io.m3.sql.Database;
 import io.m3.sql.desc.SqlColumn;
-import io.m3.sql.desc.SqlColumnProperty;
 import io.m3.sql.desc.SqlTable;
 import io.m3.util.ImmutableList;
 import org.slf4j.Logger;

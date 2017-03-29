@@ -40,6 +40,7 @@ final class PojoImplementationGenerator implements Generator {
         writeVariables(writer, descriptor);
         writeMethods(writer, descriptor);
         writeToStringBuilder(writer, descriptor);
+        writeEquals(writer, descriptor);
 
         writer.write("}");
         writer.close();
@@ -181,5 +182,51 @@ final class PojoImplementationGenerator implements Generator {
         writeNewLine(writer);
     }
 
+    private static void writeEquals(Writer writer, PojoDescriptor descriptor) throws IOException {
+
+        writeNewLine(writer);
+        writer.write("    /** {@inheritDoc} */");
+        writeNewLine(writer);
+        writer.write("    @Override");
+        writeNewLine(writer);
+        writer.write("    public boolean equals(Object object) {");
+        writeNewLine(writer);
+
+        writer.write("        if (object == this) {");
+        writeNewLine(writer);
+        writer.write("            return true;");
+        writeNewLine(writer);
+        writer.write("        }");
+        writeNewLine(writer);
+
+        writer.write("        if ((object == null) || (!(object instanceof ");
+        writer.write(descriptor.element().toString());
+        writer.write("))) {");
+        writeNewLine(writer);
+        writer.write("            return false;");
+        writeNewLine(writer);
+        writer.write("        }");
+        writeNewLine(writer);
+
+
+        writer.write("        ");
+        writer.write(descriptor.element().toString());
+        writer.write(" other = (");
+        writer.write(descriptor.element().toString());
+        writer.write(") object;");
+
+        for (PojoPropertyDescriptor ppd : descriptor.properties()) {
+          //  writer.write("        builder.append(\"");
+          //  writer.write(ppd.name());
+           // writer.write("\",");
+           // writer.write(ppd.name());
+           // writer.write(");");
+            writeNewLine(writer);
+        }
+
+        writer.write("    }");
+        writeNewLine(writer);
+
+    }
 
 }

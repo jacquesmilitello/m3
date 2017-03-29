@@ -19,11 +19,19 @@ public @interface Column {
     String value();
 
     /**
-     * To mark this column nullable. (only if type is an object and not a primitive).
+     * Optional, this column is nullable. (only if type is an object and not a primitive).
      *
      * @return true if the column is nullable.
      */
     boolean nullable() default false;
 
+    /**
+     * Optional, the column is included in SQL INSERT statements.
+     */
+    boolean insertable() default true;
 
+    /**
+     * Optional,the column is included in SQL UPDATE statement.
+     */
+    boolean updatable() default true;
 }

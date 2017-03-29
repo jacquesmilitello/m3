@@ -6,7 +6,7 @@ package io.m3.sql.desc;
 public final class SqlPrimaryKey extends SqlColumn {
 
     public SqlPrimaryKey(SqlTable table, String name) {
-        super(table, name);
+        super(table, name, false, true, false);
     }
 
 }

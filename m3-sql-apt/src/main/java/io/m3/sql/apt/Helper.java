@@ -37,7 +37,7 @@ final class Helper {
         writeNewLine(writer);
     }
 
-    public static String variable(String name) {
+    public static String propertyName(String name) {
         StringBuilder builder = new StringBuilder(name.length());
         builder.append(Character.toLowerCase(name.charAt(0)));
         builder.append(name.substring(1));
@@ -91,8 +91,20 @@ final class Helper {
             return "setShort";
         }
 
-        if ("short".equals(type) || "java.lang.Short".equals(type)) {
-            return "setShort";
+        if ("byte".equals(type) || "java.lang.Byte".equals(type)) {
+            return "setByte";
+        }
+
+        if ("float".equals(type) || "java.lang.Float".equals(type)) {
+            return "setFloat";
+        }
+
+        if ("double".equals(type) || "java.lang.Double".equals(type)) {
+            return "setDouble";
+        }
+
+        if ("boolean".equals(type) || "java.lang.Boolean".equals(type)) {
+            return "setBoolean";
         }
 
         if ("java.lang.String".equals(type)) {
@@ -101,6 +113,10 @@ final class Helper {
 
         if ("java.sql.Date".equals(type)) {
             return "setDate";
+        }
+
+        if ("java.sql.Timestamp".equals(type)) {
+            return "setTimestamp";
         }
 
         throw new UnsupportedOperationException("Helper.preparedStatementSetter -> type not supported -> [" + type + "]");
@@ -124,6 +140,18 @@ final class Helper {
             return "getByte";
         }
 
+        if ("float".equals(type) || "java.lang.Float".equals(type)) {
+            return "getFloat";
+        }
+
+        if ("double".equals(type) || "java.lang.Double".equals(type)) {
+            return "getDouble";
+        }
+
+        if ("boolean".equals(type) || "java.lang.Boolean".equals(type)) {
+            return "getBoolean";
+        }
+
         if ("java.lang.String".equals(type)) {
             return "getString";
         }
@@ -132,14 +160,19 @@ final class Helper {
             return "getDate";
         }
 
-        throw new UnsupportedOperationException("Helper.preparedStatementSetter -> type not supported -> [" + type + "]");
+        if ("java.sql.Timestamp".equals(type)) {
+            return "getTimestamp";
+        }
+
+        throw new UnsupportedOperationException("Helper.preparedStatementGetter -> type not supported -> [" + type + "]");
     }
 
-    public static boolean isNullableType(String type) {
-        if ("int".equals(type) || "short".equals(type) || "long".equals(type) || "byte".equals(type) || "int".equals(type)) {
-            return false;
+    public static boolean isPrimitiveType(String type) {
+        if ("int".equals(type) || "short".equals(type) || "long".equals(type) || "byte".equals(type) ||
+                "float".equals(type) || "double".equals(type) || "boolean".equals(type)) {
+            return true;
         }
-        return true;
+        return false;
     }
 
     public static String nullableType(String type) {

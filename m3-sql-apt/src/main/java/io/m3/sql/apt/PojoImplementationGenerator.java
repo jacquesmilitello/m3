@@ -1,5 +1,7 @@
 package io.m3.sql.apt;
 
+import io.m3.sql.annotation.BusinessKey;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
@@ -7,6 +9,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static io.m3.sql.apt.Helper.*;
 import static io.m3.sql.apt.Helper.writeNewLine;
@@ -79,7 +82,7 @@ final class PojoImplementationGenerator implements Generator {
             writer.write("    private ");
             writer.write(ppd.getter().getReturnType().toString());
             writer.write(" ");
-            writer.write(ppd.name());
+            writer.write(ppd.variable());
             writer.write(";");
             writeNewLine(writer);
         }
@@ -111,7 +114,7 @@ final class PojoImplementationGenerator implements Generator {
         writer.write("() {");
         writeNewLine(writer);
         writer.write("        return this.");
-        writer.write(ppd.name());
+        writer.write(ppd.variable());
         writer.write(";");
         writeNewLine(writer);
         writer.write("    }");
@@ -136,13 +139,13 @@ final class PojoImplementationGenerator implements Generator {
         writer.write("(");
         writer.write(ppd.getter().getReturnType().toString());
         writer.write(" ");
-        writer.write(ppd.name());
+        writer.write(ppd.variable());
         writer.write(") {");
         writeNewLine(writer);
         writer.write("        this.");
-        writer.write(ppd.name());
+        writer.write(ppd.variable());
         writer.write(" = ");
-        writer.write(ppd.name());
+        writer.write(ppd.variable());
         writer.write(";");
         writeNewLine(writer);
         writer.write("    }");
@@ -171,8 +174,8 @@ final class PojoImplementationGenerator implements Generator {
         for (PojoPropertyDescriptor ppd : descriptor.properties()) {
             writer.write("        builder.append(\"");
             writer.write(ppd.name());
-            writer.write("\",");
-            writer.write(ppd.name());
+            writer.write("\", this.");
+            writer.write(ppd.variable());
             writer.write(");");
             writeNewLine(writer);
         }
@@ -214,13 +217,48 @@ final class PojoImplementationGenerator implements Generator {
         writer.write(" other = (");
         writer.write(descriptor.element().toString());
         writer.write(") object;");
+        writeNewLine(writer);
 
-        for (PojoPropertyDescriptor ppd : descriptor.properties()) {
-          //  writer.write("        builder.append(\"");
-          //  writer.write(ppd.name());
-           // writer.write("\",");
-           // writer.write(ppd.name());
-           // writer.write(");");
+        List<PojoPropertyDescriptor> businessKeys  = descriptor.businessKeys();
+
+        if (businessKeys.size() == 0) {
+            writer.write("        // no business key -> use the primary keys");
+            writeNewLine(writer);
+
+            writer.write("        return ");
+            int number = descriptor.ids().size();
+            for (int i = 0 ; i < number ; i++) {
+                writeEqualsPojoPropertyDescriptor(writer, descriptor.ids().get(i));
+                if (i + 1 < number) {
+                    writer.write(" && ");
+                    writeNewLine(writer);
+                    writer.write("           ");
+                }
+            }
+
+            writer.write(";");
+            writeNewLine(writer);
+        } else {
+            int number = businessKeys.size();
+
+            writer.write("        // " +number + " business key" + ((number >1) ? "s" : "") + " on propert"+ ((number >1) ? "ies" : "y") + " : ");
+            for (int i = 0 ; i < number ; i++) {
+                writer.write(businessKeys.get(i).name());
+                if (i + 1 < number) {
+                    writer.write(", ");
+                }
+            }
+            writeNewLine(writer);
+            writer.write("        return ");
+            for (int i = 0 ; i < number ; i++) {
+                writeEqualsPojoPropertyDescriptor(writer, businessKeys.get(i));
+                if (i + 1 < number) {
+                    writer.write(" && ");
+                    writeNewLine(writer);
+                    writer.write("           ");
+                }
+            }
+            writer.write(";");
             writeNewLine(writer);
         }
 
@@ -229,4 +267,17 @@ final class PojoImplementationGenerator implements Generator {
 
     }
 
+
+    private static void writeEqualsPojoPropertyDescriptor(Writer writer, PojoPropertyDescriptor ppd) throws IOException {
+        writer.write(ppd.name());
+
+        if (isPrimitiveType(ppd.getter().getReturnType().toString())) {
+            writer.write(" == other.");
+            writer.write(ppd.getter().toString());
+        } else {
+            writer.write(".equals(");
+            writer.write(ppd.getter().toString());
+            writer.write(")");
+        }
+    }
 }

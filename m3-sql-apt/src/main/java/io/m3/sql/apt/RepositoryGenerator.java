@@ -67,9 +67,24 @@ final class RepositoryGenerator implements Generator {
             writer.write(";");
             writeNewLine(writer);
         }
+
+        for (PojoPropertyDescriptor bk : descriptor.businessKeys()) {
+            writer.write("import static ");
+            writer.write(descriptor.fullyQualidiedClassName() + "Descriptor.");
+            writer.write(toUpperCase(bk.name()));
+            writer.write(";");
+            writeNewLine(writer);
+        }
+
         writer.write("import static ");
         writer.write(Expressions.class.getName() + ".eq;");
         writeNewLine(writer);
+
+        if (descriptor.businessKeys().size() > 1) {
+            writer.write("import static ");
+            writer.write(Expressions.class.getName() + ".and;");
+            writeNewLine(writer);
+        }
 
         writeGenerated(writer, RepositoryGenerator.class.getName());
 
@@ -85,6 +100,11 @@ final class RepositoryGenerator implements Generator {
         writeNewLine(writer);
         writer.write("    private final String findById;");
         writeNewLine(writer);
+
+        if (descriptor.businessKeys().size() > 0) {
+            writer.write("    private final String findByBusinessKey;");
+            writeNewLine(writer);
+        }
 
         if (!descriptor.element().getAnnotation(Table.class).immutable()) {
             writer.write("    private final String findByIdForUpdate;");
@@ -109,12 +129,16 @@ final class RepositoryGenerator implements Generator {
 
         generateFindById(writer, descriptor);
         generateFindByIdForUpdate(writer,descriptor);
+        generateFindByBusinessKey(writer, descriptor);
         generateInsert(writer, descriptor);
         generateUpdate(writer, descriptor);
+
 
         writer.write("    }");
         writeNewLine(writer);
     }
+
+
 
     private static void generateFindById(Writer writer, PojoDescriptor descriptor) throws IOException {
         writer.write("        this.findById = select(ALL).from(TABLE).where(");
@@ -145,11 +169,39 @@ final class RepositoryGenerator implements Generator {
 
     }
 
+    private static void generateFindByBusinessKey(Writer writer, PojoDescriptor descriptor) throws IOException {
+
+        List<PojoPropertyDescriptor> ppds = descriptor.businessKeys();
+
+        if (ppds.size() == 0) {
+            return;
+        }
+
+        writer.write("        this.findByBusinessKey = select(ALL).from(TABLE).where(");
+
+        if (ppds.size() > 1) {
+            writer.write("and(");
+        }
+        for (int i = 0 ;  i < ppds.size() ; i++) {
+            writer.write("eq(");
+            writer.write(Helper.toUpperCase(ppds.get(i).name()));
+            writer.write(')');
+            if (i + 1 < ppds.size()) {
+                writer.write(", ");
+            }
+        }
+        if (ppds.size() > 1) {
+            writer.write(')');
+        }
+        writer.write(").build();");
+        writeNewLine(writer);
+    }
+
     private static void generateInsert(Writer writer, PojoDescriptor descriptor) throws IOException {
         if (descriptor.element().getAnnotation(Table.class).immutable()) {
             return;
         }
-        writer.write("        this.insert = insert(TABLE,ALL).build();");
+        writer.write("        this.insert = insert(TABLE, ALL).build();");
         writeNewLine(writer);
 
     }
@@ -160,7 +212,7 @@ final class RepositoryGenerator implements Generator {
             return;
         }
 
-        writer.write("        this.update = update(TABLE,ALL).build();");
+        writer.write("        this.update = update(TABLE, ALL).build();");
         writeNewLine(writer);
 
     }
@@ -171,7 +223,10 @@ final class RepositoryGenerator implements Generator {
         generateMethodInsert(writer, descriptor);
         generateMethodUpdate(writer, descriptor);
         generateMethodBatch(writer, descriptor);
+        generateMethodFindByBusinessKey(writer, descriptor);
     }
+
+
 
     private static void generateMethodFindById(Writer writer, PojoDescriptor descriptor) throws IOException {
 
@@ -189,7 +244,7 @@ final class RepositoryGenerator implements Generator {
 
         writer.write(") {");
         writeNewLine(writer);
-        writer.write("         return executeSelect(this.findById, ps -> ");
+        writer.write("        return executeSelect(this.findById, ps -> ");
 
         if (descriptor.ids().size() == 1) {
             PojoPropertyDescriptor ppd = descriptor.ids().get(0);
@@ -218,9 +273,9 @@ final class RepositoryGenerator implements Generator {
 
 
         writeNewLine(writer);
-        writer.write("         // execute insert");
+        writer.write("        // execute insert");
         writeNewLine(writer);
-        writer.write("         executeInsert(this.insert, Mappers.");
+        writer.write("        executeInsert(this.insert, Mappers.");
         writer.write(toUpperCase(descriptor.element().getSimpleName().toString()));
         writer.write(", pojo);");
 
@@ -239,9 +294,9 @@ final class RepositoryGenerator implements Generator {
 
 
         writeNewLine(writer);
-        writer.write("         // execute update");
+        writer.write("        // execute update");
         writeNewLine(writer);
-        writer.write("         executeUpdate(this.update, Mappers.");
+        writer.write("        executeUpdate(this.update, Mappers.");
         writer.write(toUpperCase(descriptor.element().getSimpleName().toString()));
         writer.write(", pojo);");
 
@@ -260,9 +315,9 @@ final class RepositoryGenerator implements Generator {
 
 
         writeNewLine(writer);
-        writer.write("         // add to batch");
+        writer.write("        // add to batch");
         writeNewLine(writer);
-        writer.write("         addBatch(this.insert, Mappers.");
+        writer.write("        addBatch(this.insert, Mappers.");
         writer.write(toUpperCase(descriptor.element().getSimpleName().toString()));
         writer.write(", pojo);");
 
@@ -271,4 +326,65 @@ final class RepositoryGenerator implements Generator {
         writeNewLine(writer);
 
     }
+
+    private static void generateMethodFindByBusinessKey(Writer writer, PojoDescriptor descriptor) throws IOException {
+
+        List<PojoPropertyDescriptor> businessKeys  = descriptor.businessKeys();
+        if (businessKeys.size() == 0) {
+            return;
+        }
+
+        writeNewLine(writer);
+        writer.write("    public final ");
+        writer.write(descriptor.element().toString());
+        writer.write(" findByBusinessKey(");
+
+        for (int i = 0 ; i < businessKeys.size() ; i++) {
+            PojoPropertyDescriptor ppd = businessKeys.get(i);
+            writer.write(ppd.getter().getReturnType().toString());
+            writer.write(' ');
+            writer.write(ppd.name());
+            if (i+1 < businessKeys.size()) {
+                writer.write(',');
+            }
+        }
+        writer.write(") {");
+        writeNewLine(writer);
+
+        writer.write("        return executeSelect(this.findByBusinessKey, ps -> ");
+
+        if (businessKeys.size() == 1) {
+            writer.write("ps.");
+            writer.write(preparedStatementSetter(businessKeys.get(0).getter().getReturnType().toString()));
+            writer.write("(1, ");
+            writer.write(businessKeys.get(0).name());
+            writer.write(")");
+
+        } else {
+            writer.write(" {");
+            writeNewLine(writer);
+            for (int i = 0 ; i < businessKeys.size() ; i++) {
+                writer.write("            ");
+                writer.write("ps.");
+                writer.write(preparedStatementSetter(businessKeys.get(i).getter().getReturnType().toString()));
+                writer.write('(');
+                writer.write("" + (i+1));
+                writer.write(", ");
+                writer.write(businessKeys.get(i).name());
+                writer.write(");");
+                writeNewLine(writer);
+            }
+            writeNewLine(writer);
+            writer.write("        }");
+        }
+
+        writer.write(", Mappers.");
+        writer.write(toUpperCase(descriptor.element().getSimpleName().toString()));
+        writer.write(");");
+
+        writeNewLine(writer);
+        writer.write("    }");
+        writeNewLine(writer);
+    }
+
 }

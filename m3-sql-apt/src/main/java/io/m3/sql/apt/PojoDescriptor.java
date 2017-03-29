@@ -1,7 +1,10 @@
 package io.m3.sql.apt;
 
+import io.m3.sql.annotation.BusinessKey;
+
 import javax.lang.model.element.Element;
 import java.util.List;
+import java.util.stream.Collectors;
 
 final class PojoDescriptor {
 
@@ -34,5 +37,11 @@ final class PojoDescriptor {
 
     public List<PojoPropertyDescriptor> ids() {
         return this.idDescriptors;
+    }
+
+    public List<PojoPropertyDescriptor> businessKeys() {
+        return propertyDescriptors.stream()
+                .filter(ppd -> ppd.getter().getAnnotation(BusinessKey.class) != null)
+                .collect(Collectors.toList());
     }
 }

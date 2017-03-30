@@ -17,13 +17,16 @@ import io.m3.sql.tx.Transaction;
 import io.m3.util.ImmutableList;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.tools.RunScript;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.InputStreamReader;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +49,13 @@ public class StudentTest {
 
     }
 
+    @After
     public void after() throws Exception {
+        try (Connection connection = ds.getConnection()) {
+            try (Statement st = connection.createStatement()) {
+                st.execute("shutdown");
+            }
+        }
         ds.dispose();
     }
 

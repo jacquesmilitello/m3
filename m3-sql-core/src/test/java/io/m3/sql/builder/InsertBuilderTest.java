@@ -36,7 +36,7 @@ public class InsertBuilderTest {
 
     @Test
     public void testInsert() {
-        InsertBuilder builder = new InsertBuilder(database, TABLE_T1,  of(COL_T1_02, COL_T1_03,COL_T1_04, COL_T1_05, COL_T1_01));
-        Assert.assertEquals("INSERT INTO T1 (`col_T1_01`,`col_T1_02`,`col_T1_03`,`col_T1_05`) VALUES (?,?,?)", builder.build());
+        InsertBuilder builder = new InsertBuilder(database, TABLE_T1,  of(COL_T1_01, COL_T1_02, COL_T1_03,COL_T1_04, COL_T1_05));
+        Assert.assertEquals("INSERT INTO T1 (`col_T1_01`,`col_T1_02`,`col_T1_03`,`col_T1_05`) VALUES (?,?,?,?)", builder.build());
     }
 }

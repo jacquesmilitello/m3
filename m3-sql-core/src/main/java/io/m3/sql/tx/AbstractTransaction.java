@@ -26,7 +26,7 @@ public abstract class AbstractTransaction implements Transaction {
 
     private final TransactionManagerImpl transactionManager;
 
-    private final Map<String, PreparedStatement> statemens = new HashMap<>();
+    private final Map<String, PreparedStatement> statements = new HashMap<>();
     private final Map<String, PreparedStatement> batchs = new HashMap<>();
 
     protected AbstractTransaction(TransactionManagerImpl transactionManager, Connection connection) {
@@ -36,7 +36,7 @@ public abstract class AbstractTransaction implements Transaction {
 
     /** {@inheritDoc} */
     @Override
-    public final void close() {
+    public void close() {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.debug("close()");
@@ -59,7 +59,7 @@ public abstract class AbstractTransaction implements Transaction {
 
     public final PreparedStatement select(String sql) {
 
-        PreparedStatement ps = this.statemens.get(sql);
+        PreparedStatement ps = this.statements.get(sql);
 
         if (ps == null) {
             try {
@@ -67,7 +67,7 @@ public abstract class AbstractTransaction implements Transaction {
             } catch (SQLException cause) {
                 throw new TransactionException("Failed to prepare statement for SQL [" + sql + "]", cause);
             }
-            this.statemens.put(sql, ps);
+            this.statements.put(sql, ps);
         }
 
         return ps;
@@ -76,7 +76,7 @@ public abstract class AbstractTransaction implements Transaction {
 
     public final PreparedStatement insert(String sql) {
 
-        PreparedStatement ps = this.statemens.get(sql);
+        PreparedStatement ps = this.statements.get(sql);
 
         if (ps == null) {
             try {
@@ -84,7 +84,7 @@ public abstract class AbstractTransaction implements Transaction {
             } catch (SQLException cause) {
                 throw new TransactionException("Failed to prepare statement for SQL [" + sql + "]", cause);
             }
-            this.statemens.put(sql, ps);
+            this.statements.put(sql, ps);
         }
 
         return ps;
@@ -92,7 +92,7 @@ public abstract class AbstractTransaction implements Transaction {
 
     public final PreparedStatement update(String sql) {
 
-        PreparedStatement ps = this.statemens.get(sql);
+        PreparedStatement ps = this.statements.get(sql);
 
         if (ps == null) {
             try {
@@ -100,7 +100,7 @@ public abstract class AbstractTransaction implements Transaction {
             } catch (SQLException cause) {
                 throw new TransactionException("Failed to prepare statement for SQL [" + sql + "]", cause);
             }
-            this.statemens.put(sql, ps);
+            this.statements.put(sql, ps);
         }
 
         return ps;
@@ -130,5 +130,30 @@ public abstract class AbstractTransaction implements Transaction {
 
     private void closeStatements() {
 
+        try {
+            closePreparedStatements(this.statements);
+        } finally {
+            closePreparedStatements(this.batchs);
+        }
+
+
+    }
+
+
+    private static void closePreparedStatements(Map<String, PreparedStatement> pss) {
+        try {
+            for (String sql : pss.keySet()) {
+                try {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("close select for SQL [{}]", sql);
+                    }
+                    pss.get(sql).close();
+                } catch (SQLException cause) {
+                    LOGGER.error("Failed to close PreparedStatement -> skip", cause);
+                }
+            }
+        } finally {
+            pss.clear();
+        }
     }
 }

@@ -19,7 +19,7 @@ public abstract class Dialect {
                 appendable.append('.');
             }
 
-            appendable.append(column.name());
+            appendable.append(column.toSql());
         } catch (IOException e) {
             e.printStackTrace();
         }

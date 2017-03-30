@@ -39,8 +39,13 @@ public abstract class SqlColumn {
         return this.table;
     }
 
+    public String toSql() {
+        return this.name;
+    }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("name", name).append("table", table).toString();

@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Created by jmilitello on 25/03/2017.
+ * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
 final class JoinClause extends AbstractBuilder {
 

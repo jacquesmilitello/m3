@@ -8,6 +8,8 @@ import java.sql.SQLException;
  */
 public interface PreparedStatementSetter {
 
+    PreparedStatementSetter EMPTY = ps -> {};
+
     void set(PreparedStatement ps) throws SQLException;
 
 }

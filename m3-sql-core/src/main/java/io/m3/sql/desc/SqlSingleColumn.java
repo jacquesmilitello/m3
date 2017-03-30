@@ -5,8 +5,17 @@ package io.m3.sql.desc;
  */
 public final class SqlSingleColumn extends SqlColumn {
 
+    private final boolean nullable;
+
+    private final boolean insertable;
+
+    private final boolean updatable;
+
     public SqlSingleColumn(SqlTable table, String name, boolean nullable, boolean insertable, boolean updatable) {
-        super(table, name, nullable, insertable, updatable);
+        super(table, name);
+        this.nullable = nullable;
+        this.insertable = insertable;
+        this.updatable = updatable;
     }
 
 }

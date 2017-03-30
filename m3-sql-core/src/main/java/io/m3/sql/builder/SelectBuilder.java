@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static io.m3.util.ImmutableList.of;
 
@@ -29,6 +28,7 @@ public final class SelectBuilder extends AbstractBuilder {
     private ImmutableList<SqlTable> from;
     private final List<JoinClause> joins = new ArrayList<>();
     private final List<Order> orderBy = new ArrayList<>();
+    private ImmutableList<SqlColumn> groupBy;
     private boolean forUpdate = false;
     private int limit = -1;
 
@@ -42,13 +42,12 @@ public final class SelectBuilder extends AbstractBuilder {
         validate();
 
         StringBuilder builder = new StringBuilder(2048);
-        builder.append("SELECT ");
+
         appendSelect(builder);
-
         appendFrom(builder);
-
         appendJoins(builder);
         appendWhere(builder);
+        appendGroupBy(builder);
         appendOrder(builder);
 
         if (forUpdate) {
@@ -71,7 +70,7 @@ public final class SelectBuilder extends AbstractBuilder {
         return this;
     }
 
-    public SelectBuilder from(SqlTable ... tables) {
+    public SelectBuilder from(SqlTable... tables) {
         this.from = of(tables);
         return this;
     }
@@ -88,6 +87,11 @@ public final class SelectBuilder extends AbstractBuilder {
 
     public SelectBuilder limit(int limit) {
         this.limit = limit;
+        return this;
+    }
+
+    public SelectBuilder groupBy(SqlColumn... columns) {
+        this.groupBy = of(columns);
         return this;
     }
 
@@ -150,10 +154,10 @@ public final class SelectBuilder extends AbstractBuilder {
     private void appendSelect(StringBuilder builder) {
         //if (projection == null) {
 
+        builder.append("SELECT ");
         boolean alias = from.size() > 1;
 
         for (SqlColumn column : this.columns) {
-
 
 
             database().dialect().wrap(builder, column, alias);
@@ -193,7 +197,6 @@ public final class SelectBuilder extends AbstractBuilder {
         }
 
         builder.append(" ORDER BY ");
-        boolean addAlias = joins.size() > 0;
         for (Order o : orderBy) {
             database().dialect().wrap(builder, o.column(), hasAlias());
             builder.append(' ').append(o.type().name()).append(',');
@@ -216,6 +219,20 @@ public final class SelectBuilder extends AbstractBuilder {
         }
     }
 
+    private void appendGroupBy(StringBuilder builder) {
+        if (this.groupBy == null) {
+            return;
+        }
+        builder.append(" GROUP BY ");
+
+        for (SqlColumn column : this.groupBy) {
+            database().dialect().wrap(builder, column, hasAlias());
+            builder.append(',');
+        }
+        builder.deleteCharAt(builder.length() - 1);
+    }
+
+
     boolean hasAlias() {
         return this.from.size() > 1;
     }
@@ -227,8 +244,7 @@ public final class SelectBuilder extends AbstractBuilder {
             SqlTable table = column.table();
 
 
-
-         //   column.
+            //   column.
 
         }
 

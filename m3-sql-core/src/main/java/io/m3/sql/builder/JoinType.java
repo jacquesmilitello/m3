@@ -1,7 +1,7 @@
 package io.m3.sql.builder;
 
 /**
- * Created by jmilitello on 25/03/2017.
+ * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
 public enum JoinType {
 

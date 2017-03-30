@@ -2,6 +2,7 @@ package io.m3.sql.builder;
 
 import io.m3.sql.Database;
 import io.m3.sql.desc.SqlColumn;
+import io.m3.sql.desc.SqlPrimaryKey;
 import io.m3.sql.desc.SqlTable;
 import io.m3.util.ImmutableList;
 import org.slf4j.Logger;
@@ -55,7 +56,6 @@ public final class InsertBuilder extends AbstractBuilder{
 	private void builderColumn(StringBuilder builder) {
 		builder.append(" (");
 		for (SqlColumn column : this.columns) {
-
 			//if (column.types().contains(SqlColumnProperty.ID) || column.types().contains(SqlColumnProperty.INSERTABLE)) {
 				builder.append("`");
 				builder.append(column.name());

@@ -4,6 +4,8 @@ import io.m3.sql.builder.InsertBuilder;
 import io.m3.sql.builder.SelectBuilder;
 import io.m3.sql.builder.UpdateBuilder;
 import io.m3.sql.desc.SqlColumn;
+import io.m3.sql.desc.SqlPrimaryKey;
+import io.m3.sql.desc.SqlSingleColumn;
 import io.m3.sql.desc.SqlTable;
 import io.m3.sql.jdbc.*;
 import io.m3.sql.tx.Transaction;
@@ -42,12 +44,12 @@ public abstract class Repository {
         return new SelectBuilder(this.database, columns);
     }
 
-    protected final InsertBuilder insert(SqlTable table, ImmutableList<SqlColumn> columns) {
-        return new InsertBuilder(this.database, table, columns);
+    protected final InsertBuilder insert(SqlTable table, ImmutableList<SqlPrimaryKey> keys, ImmutableList<SqlSingleColumn> columns) {
+        return new InsertBuilder(this.database, table, keys, columns);
     }
 
-    protected final UpdateBuilder update(SqlTable table, ImmutableList<SqlColumn> columns) {
-        return new UpdateBuilder(this.database, table, columns);
+    protected final UpdateBuilder update(SqlTable table, ImmutableList<SqlSingleColumn> columns, ImmutableList<SqlPrimaryKey> keys) {
+        return new UpdateBuilder(this.database, table, columns, keys);
     }
 
 

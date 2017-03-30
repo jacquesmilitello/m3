@@ -58,6 +58,12 @@ final class RepositoryGenerator implements Generator {
         writer.write(descriptor.fullyQualidiedClassName() + "Descriptor.ALL;");
         writeNewLine(writer);
         writer.write("import static ");
+        writer.write(descriptor.fullyQualidiedClassName() + "Descriptor.IDS;");
+        writeNewLine(writer);
+        writer.write("import static ");
+        writer.write(descriptor.fullyQualidiedClassName() + "Descriptor.COLUMNS;");
+        writeNewLine(writer);
+        writer.write("import static ");
         writer.write(descriptor.fullyQualidiedClassName() + "Descriptor.TABLE;");
         writeNewLine(writer);
         for (PojoPropertyDescriptor id : descriptor.ids()) {
@@ -201,7 +207,7 @@ final class RepositoryGenerator implements Generator {
         if (descriptor.element().getAnnotation(Table.class).immutable()) {
             return;
         }
-        writer.write("        this.insert = insert(TABLE, ALL).build();");
+        writer.write("        this.insert = insert(TABLE, IDS, COLUMNS).build();");
         writeNewLine(writer);
 
     }
@@ -212,7 +218,7 @@ final class RepositoryGenerator implements Generator {
             return;
         }
 
-        writer.write("        this.update = update(TABLE, ALL).build();");
+        writer.write("        this.update = update(TABLE, COLUMNS, IDS).build();");
         writeNewLine(writer);
 
     }

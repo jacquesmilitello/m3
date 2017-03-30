@@ -46,9 +46,9 @@ public final class InsertBuilder extends AbstractBuilder{
 	private void builderValues(StringBuilder builder) {
 		builder.append(" VALUES (");
 		for (SqlColumn column : this.columns) {
-			//if (column.types().contains(SqlColumnProperty.ID) || column.types().contains(SqlColumnProperty.INSERTABLE)) {
+			if (column.isInsertable()) {
 				builder.append("?,");
-			//}
+			}
 		}
 		builder.setCharAt(builder.length() - 1, ')');
 	}
@@ -56,15 +56,13 @@ public final class InsertBuilder extends AbstractBuilder{
 	private void builderColumn(StringBuilder builder) {
 		builder.append(" (");
 		for (SqlColumn column : this.columns) {
-			//if (column.types().contains(SqlColumnProperty.ID) || column.types().contains(SqlColumnProperty.INSERTABLE)) {
+			if (column.isInsertable()) {
+				//if (column.types().contains(SqlColumnProperty.ID) || column.types().contains(SqlColumnProperty.INSERTABLE)) {
 				builder.append("`");
 				builder.append(column.name());
 				builder.append("`,");
-			//} else {
-			//	if (LOGGER.isDebugEnabled()) {
-			//		LOGGER.debug("Skip column [{}] -> because type : [{}]", column, column.types());
-			//	}
 			}
+		}
 
 		builder.setCharAt(builder.length() - 1, ')');
 	}

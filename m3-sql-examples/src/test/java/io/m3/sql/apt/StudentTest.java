@@ -68,6 +68,7 @@ public class StudentTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Student student = repository.findById(1);
+            Assert.assertNull(student);
             System.out.println(student);
         }
 
@@ -81,6 +82,8 @@ public class StudentTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Student student = repository.findById(1);
+            Assert.assertNotNull(student);
+            Assert.assertEquals(37, student.getAge().intValue());
             System.out.println(student);
         }
 
@@ -93,6 +96,8 @@ public class StudentTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Student student = repository.findById(1);
+            Assert.assertNotNull(student);
+            Assert.assertEquals(38, student.getAge().intValue());
             System.out.println(student);
         }
 

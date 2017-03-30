@@ -17,11 +17,18 @@ public abstract class SqlColumn {
      */
     private final String name;
 
+    private final boolean nullable;
 
-    public SqlColumn(SqlTable table, String name) {
+    private final boolean insertable;
+
+    private final boolean updatable;
+
+    public SqlColumn(SqlTable table, String name, boolean nullable, boolean insertable, boolean updatable) {
         this.table = table;
         this.name = name;
-
+        this.nullable = nullable;
+        this.insertable = insertable;
+        this.updatable = updatable;
     }
 
     public String name() {
@@ -44,5 +51,15 @@ public abstract class SqlColumn {
         return new ToStringBuilder(this).append("name", name).append("table", table).toString();
     }
 
+    public boolean isNullable() {
+        return nullable;
+    }
 
+    public boolean isInsertable() {
+        return insertable;
+    }
+
+    public boolean isUpdatable() {
+        return updatable;
+    }
 }

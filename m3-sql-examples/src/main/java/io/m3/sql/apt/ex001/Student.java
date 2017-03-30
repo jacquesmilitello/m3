@@ -5,6 +5,8 @@ import io.m3.sql.annotation.Column;
 import io.m3.sql.annotation.PrimaryKey;
 import io.m3.sql.annotation.Table;
 
+import java.sql.Timestamp;
+
 @Table( value = "student")
 public interface Student {
 
@@ -29,4 +31,13 @@ public interface Student {
 
     void setOverallRating(Long value);
 
+    @Column(value= "created_at" , updatable = false)
+    Timestamp getCreatedAt();
+
+    void setCreatedAt(Timestamp value);
+
+    @Column(value= "readonly" , nullable = true, insertable = false, updatable = false)
+    String getReadonly();
+
+    void setReadonly(String value);
 }

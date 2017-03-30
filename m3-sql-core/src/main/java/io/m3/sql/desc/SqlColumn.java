@@ -39,10 +39,22 @@ public abstract class SqlColumn {
         return this.table;
     }
 
+
     /** {@inheritDoc} */
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("name", name).append("table", table).toString();
     }
-    
+
+    public boolean isNullable() {
+        return nullable;
+    }
+
+    public boolean isInsertable() {
+        return insertable;
+    }
+
+    public boolean isUpdatable() {
+        return updatable;
+    }
 }

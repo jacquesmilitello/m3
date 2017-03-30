@@ -64,16 +64,11 @@ public final class UpdateBuilder extends AbstractBuilder {
 	private void builderSetValues(StringBuilder builder) {
 		builder.append(" SET ");
 		for (SqlColumn column : this.columns) {
-
-			//if (!column.types().contains(SqlColumnProperty.ID) && column.types().contains(SqlColumnProperty.UPDATABLE)) {
+			if (column.isUpdatable()) {
 				builder.append("`");
 				builder.append(column.name());
 				builder.append("`=?,");
-//			} else {
-//				if (LOGGER.isDebugEnabled()) {
-//					LOGGER.debug("Skip column [{}] -> because type : [{}]", column, column.types());
-//				}
-//			}
+			}
 
 		}
 		builder.setCharAt(builder.length() - 1, ' ');

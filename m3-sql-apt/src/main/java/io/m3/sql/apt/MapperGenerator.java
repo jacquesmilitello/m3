@@ -160,8 +160,10 @@ final class MapperGenerator implements Generator {
         }
 
         for (PojoPropertyDescriptor ppd : descriptor.properties()) {
-            writePsProperty(writer, ppd, index++);
-            writeNewLine(writer);
+            if (ppd.getter().getAnnotation(Column.class).insertable()) {
+                writePsProperty(writer, ppd, index++);
+                writeNewLine(writer);
+            }
         }
 
         writer.write("    }");
@@ -182,14 +184,16 @@ final class MapperGenerator implements Generator {
 
         int index = 1;
 
-        for (PojoPropertyDescriptor ppd : descriptor.ids()) {
-            writePsProperty(writer, ppd, index++);
-            writeNewLine(writer);
-        }
+//        for (PojoPropertyDescriptor ppd : descriptor.ids()) {
+//                writePsProperty(writer, ppd, index++);
+//                writeNewLine(writer);
+//        }
 
         for (PojoPropertyDescriptor ppd : descriptor.properties()) {
-            writePsProperty(writer, ppd, index++);
-            writeNewLine(writer);
+            if (ppd.getter().getAnnotation(Column.class).updatable()) {
+                writePsProperty(writer, ppd, index++);
+                writeNewLine(writer);
+            }
         }
 
         // for the where

@@ -10,6 +10,7 @@ import io.m3.sql.impl.DatabaseImpl;
 import io.m3.sql.tx.Transaction;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.tools.RunScript;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,6 +44,7 @@ public class StudentTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Student student = repository.findById(1);
+            Assert.assertNull(student);
             System.out.println(student);
         }
 
@@ -56,6 +58,8 @@ public class StudentTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Student student = repository.findById(1);
+            Assert.assertNotNull(student);
+            Assert.assertEquals(37, student.getAge().intValue());
             System.out.println(student);
         }
 
@@ -68,6 +72,8 @@ public class StudentTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Student student = repository.findById(1);
+            Assert.assertNotNull(student);
+            Assert.assertEquals(38, student.getAge().intValue());
             System.out.println(student);
         }
 

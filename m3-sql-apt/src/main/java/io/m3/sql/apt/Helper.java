@@ -185,12 +185,20 @@ final class Helper {
             return "java.sql.Types.BIGINT";
         }
 
+        if ( "java.lang.String".equals(type)) {
+            return "java.sql.Types.VARCHAR";
+        }
+
         if ("short".equals(type) || "java.lang.Short".equals(type)) {
             return "java.sql.Types.SMALLINT";
         }
 
         if ("byte".equals(type) || "java.lang.Byte".equals(type)) {
             return"java.sql.Types.TINYINT";
+        }
+
+        if ("java.sql.Timestamp".equals(type)) {
+            return"java.sql.Types.TIMESTAMP";
         }
 
         throw new UnsupportedOperationException("Helper.nullableType -> type not supported -> [" + type + "]");

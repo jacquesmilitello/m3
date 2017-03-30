@@ -18,4 +18,16 @@ public final class SqlSingleColumn extends SqlColumn {
         this.updatable = updatable;
     }
 
+    public boolean isNullable() {
+        return nullable;
+    }
+
+    public boolean isInsertable() {
+        return insertable;
+    }
+
+    public boolean isUpdatable() {
+        return updatable;
+    }
+
 }

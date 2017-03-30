@@ -4,6 +4,7 @@ import io.m3.sql.annotation.Column;
 import io.m3.sql.annotation.PrimaryKey;
 import io.m3.sql.annotation.Table;
 import io.m3.sql.desc.SqlColumn;
+import io.m3.sql.desc.SqlPrimaryKey;
 import io.m3.sql.desc.SqlSingleColumn;
 import io.m3.util.ImmutableList;
 
@@ -52,6 +53,8 @@ final class PojoDescriptorGenerator implements Generator {
         writePrimaryKeys(writer, descriptor);
         writeProperties(writer, descriptor);
         writeAllColumns(writer, descriptor);
+        writeAllIds(writer, descriptor);
+        writeAllSingleColumns(writer, descriptor);
 
         writer.write("}");
         writer.close();
@@ -191,6 +194,81 @@ final class PojoDescriptorGenerator implements Generator {
         writeNewLine(writer);
 
     }
+
+
+
+    private static void writeAllIds(Writer writer, PojoDescriptor descriptor) throws IOException {
+
+        writeNewLine(writer);
+        writer.write("    // ALL IDS");
+        writeNewLine(writer);
+
+        writer.write("    public static final ");
+        writer.write(ImmutableList.class.getName());
+        writer.write("<");
+        writer.write(SqlPrimaryKey.class.getName());
+        writer.write("> IDS = ");
+        writer.write(ImmutableList.class.getName());
+        writer.write(".of(");
+
+        StringBuilder builder = new StringBuilder();
+
+
+        for (PojoPropertyDescriptor id : descriptor.ids()) {
+//            writer.write("        ");
+//            writer.write(toUpperCase(id.name()));
+//            writer.write(',');
+//            writeNewLine(writer);
+            writeNewLine(builder);
+            builder.append("        ");
+            builder.append(toUpperCase(id.name()));
+            builder.append(',');
+
+        }
+
+        builder.deleteCharAt(builder.length()-1);
+
+        writer.write(builder.toString());
+        writer.write(");");
+        writeNewLine(writer);
+
+    }
+
+
+    private static void writeAllSingleColumns(Writer writer, PojoDescriptor descriptor) throws IOException {
+
+        writeNewLine(writer);
+        writer.write("    // ALL SINGLE COLUMNS");
+        writeNewLine(writer);
+
+        writer.write("    public static final ");
+        writer.write(ImmutableList.class.getName());
+        writer.write("<");
+        writer.write(SqlSingleColumn.class.getName());
+        writer.write("> COLUMNS = ");
+        writer.write(ImmutableList.class.getName());
+        writer.write(".of(");
+
+        StringBuilder builder = new StringBuilder();
+
+        for (PojoPropertyDescriptor id : descriptor.properties()) {
+            writeNewLine(builder);
+            builder.append("        ");
+            builder.append(toUpperCase(id.name()));
+            builder.append(',');
+
+        }
+
+        builder.deleteCharAt(builder.length()-1);
+
+        writer.write(builder.toString());
+        writer.write(");");
+        writeNewLine(writer);
+
+    }
+
+
+
 
     private static String generateAlias(Map<String, Object> properties) {
 

@@ -3,6 +3,7 @@ package io.m3.sql.builder;
 import io.m3.sql.Database;
 import io.m3.sql.desc.SqlColumn;
 import io.m3.sql.desc.SqlPrimaryKey;
+import io.m3.sql.desc.SqlSingleColumn;
 import io.m3.sql.desc.SqlTable;
 import io.m3.util.ImmutableList;
 import org.slf4j.Logger;
@@ -20,12 +21,18 @@ public final class InsertBuilder extends AbstractBuilder{
 
 	private final Database database;
 	private final SqlTable table;
-	private final ImmutableList<SqlColumn> columns;
+	private final ImmutableList<SqlPrimaryKey> keys;
+	private final ImmutableList<SqlSingleColumn> columns;
 
-	public InsertBuilder(Database database, SqlTable table, ImmutableList<SqlColumn> columns) {
+	public InsertBuilder(Database database, SqlTable table, SqlPrimaryKey key, ImmutableList<SqlSingleColumn> columns) {
+		this(database,table, ImmutableList.of(key), columns);
+	}
+
+	public InsertBuilder(Database database, SqlTable table, ImmutableList<SqlPrimaryKey> keys, ImmutableList<SqlSingleColumn> columns) {
 		super(database);
 		this.database = database;
 		this.table = table;
+		this.keys = keys;
 		this.columns = columns;
 	}
 
@@ -45,7 +52,10 @@ public final class InsertBuilder extends AbstractBuilder{
 
 	private void builderValues(StringBuilder builder) {
 		builder.append(" VALUES (");
-		for (SqlColumn column : this.columns) {
+		for (SqlPrimaryKey key : this.keys) {
+			builder.append("?,");
+		}
+		for (SqlSingleColumn column : this.columns) {
 			if (column.isInsertable()) {
 				builder.append("?,");
 			}
@@ -55,9 +65,13 @@ public final class InsertBuilder extends AbstractBuilder{
 
 	private void builderColumn(StringBuilder builder) {
 		builder.append(" (");
-		for (SqlColumn column : this.columns) {
+		for (SqlPrimaryKey key : this.keys) {
+				builder.append("`");
+				builder.append(key.name());
+				builder.append("`,");
+		}
+		for (SqlSingleColumn column : this.columns) {
 			if (column.isInsertable()) {
-				//if (column.types().contains(SqlColumnProperty.ID) || column.types().contains(SqlColumnProperty.INSERTABLE)) {
 				builder.append("`");
 				builder.append(column.name());
 				builder.append("`,");

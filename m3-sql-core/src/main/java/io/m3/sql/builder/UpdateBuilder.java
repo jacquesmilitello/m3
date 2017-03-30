@@ -1,6 +1,7 @@
 package io.m3.sql.builder;
 
 import io.m3.sql.desc.SqlPrimaryKey;
+import io.m3.sql.desc.SqlSingleColumn;
 import io.m3.sql.expression.Expression;
 import io.m3.util.ImmutableList;
 import org.slf4j.Logger;
@@ -24,14 +25,16 @@ public final class UpdateBuilder extends AbstractBuilder {
 
 	private final Database database;
 	private final SqlTable table;
-	private final ImmutableList<SqlColumn> columns;
+	private final ImmutableList<SqlSingleColumn> columns;
+	private final ImmutableList<SqlPrimaryKey> keys;
 	private Expression where;
 	
-	public UpdateBuilder(Database database, SqlTable table, ImmutableList<SqlColumn> columns) {
+	public UpdateBuilder(Database database, SqlTable table, ImmutableList<SqlSingleColumn> columns, ImmutableList<SqlPrimaryKey> keys) {
 		super(database);
 		this.database = database;
 		this.table = table;
 		this.columns = columns;
+		this.keys = keys;
 	}
 
 	public UpdateBuilder where(Expression expression) {
@@ -48,9 +51,9 @@ public final class UpdateBuilder extends AbstractBuilder {
 
 		if (this.where == null) {
 			builderWherePk(builder);
-		} else {
-		//	builder.append(where.build());
-		}
+		} //else {
+			//TODO builder.append(where.build());
+		//}
 
 		String sql = builder.toString();
 		
@@ -63,7 +66,7 @@ public final class UpdateBuilder extends AbstractBuilder {
 
 	private void builderSetValues(StringBuilder builder) {
 		builder.append(" SET ");
-		for (SqlColumn column : this.columns) {
+		for (SqlSingleColumn column : this.columns) {
 			if (column.isUpdatable()) {
 				builder.append("`");
 				builder.append(column.name());
@@ -75,39 +78,11 @@ public final class UpdateBuilder extends AbstractBuilder {
 	}
 
 	private void builderWherePk(StringBuilder builder) {
-		for (SqlColumn column : this.columns) {
-
-			if (column instanceof SqlPrimaryKey) {
+		for (SqlPrimaryKey column : this.keys) {
 				builder.append("`");
 				builder.append(column.name());
 				builder.append("`=?");
-			}
-
-//			if (column.types().contains(SqlColumnProperty.ID)) {
-//				builder.append("`");
-//				builder.append(column.name());
-//				builder.append("`=?");
-//				break;
-//			} else {
-//				if (LOGGER.isDebugEnabled()) {
-//					LOGGER.debug("Skip column [{}] -> because type : [{}]", column, column.types());
-//				}
-//			}
 		}
 	}
-//
-//	private StringBuilder table(SqlTable table) {
-//		StringBuilder builder = new StringBuilder(64);
-//		String schema = database.getSchema(table);
-//		if (!Strings.isEmpty(schema)) {
-//			builder.append("`");
-//			builder.append(schema);
-//			builder.append("`.");
-//		}
-//		builder.append("`");
-//		builder.append(table.name());
-//		builder.append("`");
-//		return builder;
-//	}
 
 }

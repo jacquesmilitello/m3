@@ -18,10 +18,10 @@ public class InsertBuilderTest {
     private static final SqlTable TABLE_T1 = new SqlTable("T1", "a");
 
     private static final SqlPrimaryKey COL_T1_01 = new SqlPrimaryKey(TABLE_T1, "col_T1_01");
-    private static final SqlColumn COL_T1_02 = new SqlSingleColumn(TABLE_T1, "col_T1_02", false, true,true);
-    private static final SqlColumn COL_T1_03 = new SqlSingleColumn(TABLE_T1, "col_T1_03", true, true,true);
-    private static final SqlColumn COL_T1_04 = new SqlSingleColumn(TABLE_T1, "col_T1_04", true, false,true);
-    private static final SqlColumn COL_T1_05 = new SqlSingleColumn(TABLE_T1, "col_T1_05", true, true,false);
+    private static final SqlSingleColumn COL_T1_02 = new SqlSingleColumn(TABLE_T1, "col_T1_02", false, true,true);
+    private static final SqlSingleColumn COL_T1_03 = new SqlSingleColumn(TABLE_T1, "col_T1_03", true, true,true);
+    private static final SqlSingleColumn COL_T1_04 = new SqlSingleColumn(TABLE_T1, "col_T1_04", true, false,true);
+    private static final SqlSingleColumn COL_T1_05 = new SqlSingleColumn(TABLE_T1, "col_T1_05", true, true,false);
 
 
     private Database database;
@@ -36,7 +36,7 @@ public class InsertBuilderTest {
 
     @Test
     public void testInsert() {
-        InsertBuilder builder = new InsertBuilder(database, TABLE_T1,  of(COL_T1_01, COL_T1_02, COL_T1_03,COL_T1_04, COL_T1_05));
+        InsertBuilder builder = new InsertBuilder(database, TABLE_T1,  COL_T1_01, of(COL_T1_02, COL_T1_03,COL_T1_04, COL_T1_05));
         Assert.assertEquals("INSERT INTO T1 (`col_T1_01`,`col_T1_02`,`col_T1_03`,`col_T1_05`) VALUES (?,?,?,?)", builder.build());
     }
 }

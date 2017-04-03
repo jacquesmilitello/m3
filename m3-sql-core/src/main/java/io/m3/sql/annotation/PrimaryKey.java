@@ -1,5 +1,8 @@
 package io.m3.sql.annotation;
 
+import io.m3.sql.id.Identifier;
+import io.m3.sql.id.NoIdentifierGenerator;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -18,5 +21,7 @@ public @interface PrimaryKey {
      * Name of the column for this primary key.
      */
     String value();
+
+    Class< ? extends Identifier> generator() default NoIdentifierGenerator.class;
 
 }

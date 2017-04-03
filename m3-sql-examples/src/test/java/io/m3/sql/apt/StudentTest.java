@@ -2,10 +2,7 @@ package io.m3.sql.apt;
 
 
 import io.m3.sql.Database;
-import io.m3.sql.apt.ex001.Factory;
-import io.m3.sql.apt.ex001.Student;
-import io.m3.sql.apt.ex001.StudentAbstractRepository;
-import io.m3.sql.apt.ex001.StudentDescriptor;
+import io.m3.sql.apt.ex001.*;
 import io.m3.sql.builder.Order;
 import io.m3.sql.desc.Projections;
 import io.m3.sql.dialect.H2Dialect;
@@ -44,9 +41,11 @@ public class StudentTest {
     @Before
     public void before() throws Exception {
         ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
-        database = new DatabaseImpl(ds, new H2Dialect(), "");
-        RunScript.execute(ds.getConnection(), new InputStreamReader(StudentTest.class.getResourceAsStream("/V00000001__ex001.sql")));
+        try (Connection connection = ds.getConnection()) {
+            RunScript.execute(connection, new InputStreamReader(StudentTest.class.getResourceAsStream("/V00000001__ex001.sql")));
+        }
 
+        database = new DatabaseImpl(ds, new H2Dialect(), "", new io.m3.sql.apt.ex001.IoM3SqlAptEx001Module("ex001",""));
     }
 
     @After

@@ -1,7 +1,7 @@
 package io.m3.sql;
 
 /**
- * Created by jmilitello on 24/03/2017.
+ * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
 public class M3SqlException extends RuntimeException {
 

@@ -40,4 +40,6 @@ public abstract class Dialect {
     public String alias() {
         return " AS ";
     }
+
+    public abstract String nextVal(String sequence);
 }

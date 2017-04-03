@@ -64,6 +64,7 @@ public final class SqlProcessor extends AbstractProcessor {
         new RepositoryGenerator().generate(this.processingEnv, descriptors, properties);
         new MapperGenerator().generate(this.processingEnv, descriptors, properties);
         new PojoMapperFactoryGenerator().generate(this.processingEnv, descriptors, properties);
+        new ModuleGenerator().generate(this.processingEnv, descriptors, properties);
 
     }
 

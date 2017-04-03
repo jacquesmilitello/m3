@@ -1,11 +1,13 @@
 package io.m3.sql.apt;
 
+import io.m3.sql.Descriptor;
 import io.m3.sql.annotation.Column;
 import io.m3.sql.annotation.PrimaryKey;
 import io.m3.sql.annotation.Table;
 import io.m3.sql.desc.SqlColumn;
 import io.m3.sql.desc.SqlPrimaryKey;
 import io.m3.sql.desc.SqlSingleColumn;
+import io.m3.sql.desc.SqlTable;
 import io.m3.util.ImmutableList;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -48,6 +50,7 @@ final class PojoDescriptorGenerator implements Generator {
         Writer writer = object.openWriter();
 
         writeHeader(writer, env, descriptor);
+        writeSingleton(writer, descriptor);
         writeConstructor(writer, descriptor);
         writeTable(writer, descriptor, properties);
         writePrimaryKeys(writer, descriptor);
@@ -55,21 +58,32 @@ final class PojoDescriptorGenerator implements Generator {
         writeAllColumns(writer, descriptor);
         writeAllIds(writer, descriptor);
         writeAllSingleColumns(writer, descriptor);
+        writeMethods(writer, descriptor);
 
         writer.write("}");
         writer.close();
     }
-
-
 
     private static void writeHeader(Writer writer, ProcessingEnvironment env, PojoDescriptor descriptor) throws IOException {
         writePackage(writer, env.getElementUtils().getPackageOf(descriptor.element()).toString());
         writeGenerated(writer, PojoDescriptorGenerator.class.getName());
 
         writer.write("public final class ");
-        writer.write(descriptor.simpleName() + "Descriptor");
+        writer.write(descriptor.simpleName() + "Descriptor implements ");
+        writer.write(Descriptor.class.getName());
         writer.write(" {");
         writeNewLine(writer);
+    }
+
+    private static void writeSingleton(Writer writer, PojoDescriptor descriptor) throws IOException {
+
+        writeNewLine(writer);
+        writer.write("    static final ");
+        writer.write(Descriptor.class.getName());
+        writer.write(" INSTANCE = new ");
+        writer.write(descriptor.simpleName() + "Descriptor();");
+        writeNewLine(writer);
+
     }
 
     private static void writeConstructor(Writer writer, PojoDescriptor descriptor) throws IOException {
@@ -173,7 +187,7 @@ final class PojoDescriptorGenerator implements Generator {
 //            writer.write(',');
 //            writeNewLine(writer);
             writeNewLine(builder);
-            builder.append("        ");
+            builder.append("            ");
             builder.append(toUpperCase(id.name()));
             builder.append(',');
 
@@ -181,7 +195,7 @@ final class PojoDescriptorGenerator implements Generator {
 
         for (PojoPropertyDescriptor id : descriptor.properties()) {
             writeNewLine(builder);
-            builder.append("        ");
+            builder.append("            ");
             builder.append(toUpperCase(id.name()));
             builder.append(',');
 
@@ -220,7 +234,7 @@ final class PojoDescriptorGenerator implements Generator {
 //            writer.write(',');
 //            writeNewLine(writer);
             writeNewLine(builder);
-            builder.append("        ");
+            builder.append("            ");
             builder.append(toUpperCase(id.name()));
             builder.append(',');
 
@@ -230,6 +244,44 @@ final class PojoDescriptorGenerator implements Generator {
 
         writer.write(builder.toString());
         writer.write(");");
+        writeNewLine(writer);
+
+    }
+
+    private static void writeMethods(Writer writer, PojoDescriptor descriptor) throws IOException {
+
+        writeNewLine(writer);
+        writer.write("    public ");
+        writer.write(SqlTable.class.getName());
+        writer.write(" table() {");
+        writeNewLine(writer);
+        writer.write("        return TABLE;");
+        writeNewLine(writer);
+        writer.write("    }");
+        writeNewLine(writer);
+
+        writeNewLine(writer);
+        writer.write("    public ");
+        writer.write(ImmutableList.class.getName());
+        writer.write("<");
+        writer.write(SqlSingleColumn.class.getName());
+        writer.write("> columns() {");
+        writeNewLine(writer);
+        writer.write("        return COLUMNS;");
+        writeNewLine(writer);
+        writer.write("    }");
+        writeNewLine(writer);
+
+        writeNewLine(writer);
+        writer.write("    public ");
+        writer.write(ImmutableList.class.getName());
+        writer.write("<");
+        writer.write(SqlPrimaryKey.class.getName());
+        writer.write("> ids() {");
+        writeNewLine(writer);
+        writer.write("        return IDS;");
+        writeNewLine(writer);
+        writer.write("    }");
         writeNewLine(writer);
 
     }
@@ -253,7 +305,7 @@ final class PojoDescriptorGenerator implements Generator {
 
         for (PojoPropertyDescriptor id : descriptor.properties()) {
             writeNewLine(builder);
-            builder.append("        ");
+            builder.append("            ");
             builder.append(toUpperCase(id.name()));
             builder.append(',');
 

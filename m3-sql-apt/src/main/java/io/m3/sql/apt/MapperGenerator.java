@@ -1,13 +1,22 @@
 package io.m3.sql.apt;
 
 import io.m3.sql.annotation.Column;
+import io.m3.sql.annotation.PrimaryKey;
+import io.m3.sql.id.Identifier;
+import io.m3.sql.id.NoIdentifierGenerator;
+import io.m3.sql.id.SequenceGenerator;
 import io.m3.sql.jdbc.Mapper;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.annotation.Annotation;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -43,7 +52,7 @@ final class MapperGenerator implements Generator {
         writeHeader(writer, env, descriptor);
         writeConstructor(writer, descriptor);
         writeMap(writer, descriptor);
-        writeInsert(writer, descriptor);
+        writeInsert(writer, descriptor, env);
         writeUpdate(writer, descriptor);
 
         writeNewLine(writer);
@@ -140,7 +149,7 @@ final class MapperGenerator implements Generator {
 
     }
 
-    private static void writeInsert(Writer writer, PojoDescriptor descriptor) throws IOException {
+    private static void writeInsert(Writer writer, PojoDescriptor descriptor,ProcessingEnvironment env) throws IOException {
 
         writeNewLine(writer);
         writer.write("    public void insert(");
@@ -155,8 +164,24 @@ final class MapperGenerator implements Generator {
         int index = 1;
 
         for (PojoPropertyDescriptor ppd : descriptor.ids()) {
-            writePsProperty(writer, ppd, index++);
-            writeNewLine(writer);
+
+
+            Class<? extends Identifier> value = extractPrimaryKeyGenerator(ppd.getter());
+
+            if (value.equals(NoIdentifierGenerator.class)) {
+                writePsProperty(writer, ppd, index++);
+                writeNewLine(writer);
+                continue;
+            }
+
+            System.out.println("---------------------------------------->" + value);
+
+            //if (classname.isAssignableFrom(SequenceGenerator.class)) {
+
+
+
+            //}
+
         }
 
         for (PojoPropertyDescriptor ppd : descriptor.properties()) {
@@ -255,5 +280,37 @@ final class MapperGenerator implements Generator {
                 "java.lang.Float".equals(type));
 
     }
+
+
+
+
+    public static Class< ? extends Identifier> extractPrimaryKeyGenerator(ExecutableElement ee) {
+        Class< ? extends Identifier> clazz = null;
+        for (AnnotationMirror mirror : ee.getAnnotationMirrors()) {
+
+            if (PrimaryKey.class.getName().equals(mirror.getAnnotationType().toString())) {
+                for(Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : mirror.getElementValues().entrySet() ) {
+                    if ("generator()".equals(entry.getKey().toString())) {
+
+                        DeclaredType type = (DeclaredType) entry.getValue().getValue();
+
+                        try {
+                            clazz = (Class<? extends Identifier>) Class.forName(type.toString());
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                if (clazz == null) {
+                    clazz = NoIdentifierGenerator.class;
+                }
+            }
+
+
+        }
+
+        return clazz;
+    }
+
 
 }

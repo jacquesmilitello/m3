@@ -16,7 +16,7 @@ public class DatabaseTest {
 
         DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
 
-        Database database = new DatabaseImpl(ds, null, "test");
+        Database database = new DatabaseImpl(ds, null, "test", null);
     }
 
 }

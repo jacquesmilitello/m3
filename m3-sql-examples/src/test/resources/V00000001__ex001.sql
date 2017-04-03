@@ -8,3 +8,5 @@ CREATE TABLE `student` (
   PRIMARY KEY (`id`)
 );
 
+CREATE SEQUENCE seq_student;
+

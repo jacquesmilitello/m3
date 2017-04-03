@@ -40,4 +40,5 @@ public interface Student {
     String getReadonly();
 
     void setReadonly(String value);
+
 }

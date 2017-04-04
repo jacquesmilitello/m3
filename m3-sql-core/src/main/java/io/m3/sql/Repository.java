@@ -40,6 +40,10 @@ public abstract class Repository {
         this.database = database;
     }
 
+    protected Database database() {
+        return this.database;
+    }
+
     protected final SelectBuilder select(ImmutableList<SqlColumn> columns) {
         return new SelectBuilder(this.database, columns);
     }

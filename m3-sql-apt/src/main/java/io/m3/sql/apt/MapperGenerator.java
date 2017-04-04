@@ -164,24 +164,8 @@ final class MapperGenerator implements Generator {
         int index = 1;
 
         for (PojoPropertyDescriptor ppd : descriptor.ids()) {
-
-
-            Class<? extends Identifier> value = extractPrimaryKeyGenerator(ppd.getter());
-
-            if (value.equals(NoIdentifierGenerator.class)) {
                 writePsProperty(writer, ppd, index++);
                 writeNewLine(writer);
-                continue;
-            }
-
-            System.out.println("---------------------------------------->" + value);
-
-            //if (classname.isAssignableFrom(SequenceGenerator.class)) {
-
-
-
-            //}
-
         }
 
         for (PojoPropertyDescriptor ppd : descriptor.properties()) {
@@ -284,33 +268,7 @@ final class MapperGenerator implements Generator {
 
 
 
-    public static Class< ? extends Identifier> extractPrimaryKeyGenerator(ExecutableElement ee) {
-        Class< ? extends Identifier> clazz = null;
-        for (AnnotationMirror mirror : ee.getAnnotationMirrors()) {
 
-            if (PrimaryKey.class.getName().equals(mirror.getAnnotationType().toString())) {
-                for(Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : mirror.getElementValues().entrySet() ) {
-                    if ("generator()".equals(entry.getKey().toString())) {
-
-                        DeclaredType type = (DeclaredType) entry.getValue().getValue();
-
-                        try {
-                            clazz = (Class<? extends Identifier>) Class.forName(type.toString());
-                        } catch (ClassNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                if (clazz == null) {
-                    clazz = NoIdentifierGenerator.class;
-                }
-            }
-
-
-        }
-
-        return clazz;
-    }
 
 
 }

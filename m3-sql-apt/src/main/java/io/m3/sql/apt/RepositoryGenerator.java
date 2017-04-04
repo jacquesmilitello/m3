@@ -2,8 +2,12 @@ package io.m3.sql.apt;
 
 import io.m3.sql.Database;
 import io.m3.sql.Repository;
+import io.m3.sql.annotation.Sequence;
 import io.m3.sql.annotation.Table;
 import io.m3.sql.expression.Expressions;
+import io.m3.sql.id.Identifier;
+import io.m3.sql.id.NoIdentifierGenerator;
+import io.m3.sql.id.SequenceGenerator;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
@@ -121,7 +125,31 @@ final class RepositoryGenerator implements Generator {
             writeNewLine(writer);
         }
 
+
+        for (PojoPropertyDescriptor id : descriptor.ids()) {
+
+            Class<?> identifier = extractPrimaryKeyGenerator(id.getter());
+
+            if (identifier.isAssignableFrom(NoIdentifierGenerator.class)) {
+                continue;
+            }
+
+            if (SequenceGenerator.class.isAssignableFrom(identifier)) {
+                writeNewLine(writer);
+                writer.write("    private final ");
+                writer.write(identifier.getName());
+                writer.write(" idGenerator = new ");
+                writer.write(identifier.getName());
+                writer.write("(database(), \"");
+                writer.write(id.getter().getAnnotation(Sequence.class).value());
+                writer.write("\");");
+                writeNewLine(writer);
+            }
+
+        }
+
         writeNewLine(writer);
+
     }
 
     private static void writeConstructor(Writer writer, PojoDescriptor descriptor) throws IOException {
@@ -277,6 +305,24 @@ final class RepositoryGenerator implements Generator {
         writer.write(descriptor.element().toString());
         writer.write(" pojo) {");
 
+        for (PojoPropertyDescriptor id : descriptor.ids()) {
+            Class<?> identifier = extractPrimaryKeyGenerator(id.getter());
+            if (identifier.isAssignableFrom(NoIdentifierGenerator.class)) {
+                continue;
+            }
+            if (SequenceGenerator.class.isAssignableFrom(identifier)) {
+                writeNewLine(writer);
+                writer.write("        // generate identifier");
+                writeNewLine(writer);
+                writer.write("        pojo.");
+                writer.write(id.setter().getSimpleName().toString());
+                writer.write("(idGenerator.next());");
+                writeNewLine(writer);
+            }
+
+        }
+
+
 
         writeNewLine(writer);
         writer.write("        // execute insert");
@@ -351,7 +397,7 @@ final class RepositoryGenerator implements Generator {
             writer.write(' ');
             writer.write(ppd.name());
             if (i+1 < businessKeys.size()) {
-                writer.write(',');
+                writer.write(", ");
             }
         }
         writer.write(") {");
@@ -367,7 +413,7 @@ final class RepositoryGenerator implements Generator {
             writer.write(")");
 
         } else {
-            writer.write(" {");
+            writer.write('{');
             writeNewLine(writer);
             for (int i = 0 ; i < businessKeys.size() ; i++) {
                 writer.write("            ");

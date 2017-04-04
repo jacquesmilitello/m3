@@ -10,15 +10,15 @@ import java.sql.SQLException;
 /**
  * Created by jmilitello on 03/04/2017.
  */
-public class SequenceGenerator4Long extends SequenceGenerator<Long> {
+public final class SequenceGenerator4Long extends SequenceGenerator<Long> {
 
 
-    public SequenceGenerator4Long(String sequence) {
-        super(sequence);
+    public SequenceGenerator4Long(Database database,String sequence) {
+        super(database, sequence);
     }
 
     @Override
     protected Long extractResult(ResultSet rs) throws SQLException {
-        return rs.getLong(1);
+        return Long.valueOf(rs.getLong(1));
     }
 }

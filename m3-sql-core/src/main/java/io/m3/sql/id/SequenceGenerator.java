@@ -3,9 +3,7 @@ package io.m3.sql.id;
 
 import io.m3.sql.Database;
 import io.m3.sql.M3SqlException;
-import io.m3.sql.tx.Transaction;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,18 +14,19 @@ import java.sql.SQLException;
 public abstract class SequenceGenerator<T> implements Identifier<T> {
 
 
+    private final Database database;
+
     private final String sequence;
 
 
-    public SequenceGenerator(String sequence) {
-        this.sequence = sequence;
+    public SequenceGenerator(Database database, String sequence) {
+        this.database = database;
+        this.sequence = database.dialect().nextVal(sequence);
     }
 
-    public final T next(Database database, Transaction transaction) throws M3SqlException {
+    public final T next() throws M3SqlException {
 
-        String sql = database.dialect().nextVal(this.sequence);
-
-        PreparedStatement ps = transaction.select(sql);
+        PreparedStatement ps = database.transactionManager().current().select(this.sequence);
 
         try (ResultSet rs = ps.executeQuery()) {
 
@@ -40,9 +39,6 @@ public abstract class SequenceGenerator<T> implements Identifier<T> {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-
-        //database.dataSource().nextVal()
 
         return null;
     }

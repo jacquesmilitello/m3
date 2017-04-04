@@ -7,7 +7,7 @@ import io.m3.sql.tx.Transaction;
 public final class NoIdentifierGenerator<T> implements Identifier<T> {
 
     @Override
-    public T next(Database database, Transaction transaction) throws M3SqlException {
+    public T next() throws M3SqlException {
         return null;
     }
 

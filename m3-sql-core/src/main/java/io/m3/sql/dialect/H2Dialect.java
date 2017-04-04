@@ -6,6 +6,6 @@ public final class H2Dialect extends Dialect {
 
     @Override
     public String nextVal(String sequence) {
-        return "nextval('"+sequence + "')";
+        return "SELECT NEXTVAL('"+sequence + "')";
     }
 }

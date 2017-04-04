@@ -2,6 +2,8 @@ package io.m3.sql.apt;
 
 import io.m3.sql.annotation.Column;
 import io.m3.sql.annotation.PrimaryKey;
+import io.m3.sql.annotation.Sequence;
+import io.m3.sql.id.SequenceGenerator;
 
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
@@ -63,6 +65,9 @@ final class SqlInterfaceAnalyser implements Function<Element, PojoDescriptor> {
             if (executableElement.getSimpleName().toString().startsWith("get")) {
                 PrimaryKey primaryKey = executableElement.getAnnotation(PrimaryKey.class);
                 if (primaryKey != null) {
+
+                    validatePrimaryKey(executableElement, primaryKey);
+
                     ids.add(new PojoPropertyDescriptor(executableElement));
                     continue;
                 }
@@ -103,6 +108,19 @@ final class SqlInterfaceAnalyser implements Function<Element, PojoDescriptor> {
         });
 
         return new PojoDescriptor(element, ids, ppds);
+    }
+
+    private void validatePrimaryKey(ExecutableElement executableElement, PrimaryKey primaryKey) {
+
+        Class<?> identifier = Helper.extractPrimaryKeyGenerator(executableElement);
+
+        if (SequenceGenerator.class.isAssignableFrom(identifier)) {
+            // check if @Sequence exist.
+            if (executableElement.getAnnotation(Sequence.class) == null) {
+                this.messager.printMessage(Diagnostic.Kind.ERROR, "PrimaryKey [" + primaryKey + "] in [" + executableElement.getEnclosingElement() + "]  type sequnce -> missing annotation @Sequence");
+            }
+        }
+
     }
 
 

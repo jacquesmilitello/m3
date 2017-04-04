@@ -1,6 +1,14 @@
 package io.m3.sql.apt;
 
+import io.m3.sql.annotation.PrimaryKey;
+import io.m3.sql.id.Identifier;
+import io.m3.sql.id.NoIdentifierGenerator;
+
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.DeclaredType;
 import java.io.IOException;
 import java.io.Writer;
 import java.sql.Types;
@@ -203,5 +211,34 @@ final class Helper {
 
         throw new UnsupportedOperationException("Helper.nullableType -> type not supported -> [" + type + "]");
 
+    }
+
+
+    public static Class<?> extractPrimaryKeyGenerator(ExecutableElement ee) {
+        Class<?> clazz = null;
+        for (AnnotationMirror mirror : ee.getAnnotationMirrors()) {
+
+            if (PrimaryKey.class.getName().equals(mirror.getAnnotationType().toString())) {
+                for(Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : mirror.getElementValues().entrySet() ) {
+                    if ("generator()".equals(entry.getKey().toString())) {
+
+                        DeclaredType type = (DeclaredType) entry.getValue().getValue();
+
+                        try {
+                            clazz = Class.forName(type.toString());
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                if (clazz == null) {
+                    clazz = NoIdentifierGenerator.class;
+                }
+            }
+
+
+        }
+
+        return clazz;
     }
 }

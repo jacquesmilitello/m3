@@ -31,15 +31,17 @@ public class TeacherTest {
 
     private JdbcConnectionPool ds;
     private Database database;
+    private TeacherRepository repository;
 
     @Before
     public void before() throws Exception {
         ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
         try (Connection connection = ds.getConnection()) {
-            RunScript.execute(connection, new InputStreamReader(TeacherTest.class.getResourceAsStream("/V00000001__ex001.sql")));
+            RunScript.execute(connection, new InputStreamReader(TeacherTest.class.getResourceAsStream("/V00000001__ex002.sql")));
         }
 
         database = new DatabaseImpl(ds, new H2Dialect(), "", new IoM3SqlAptEx002Module("ex002", ""));
+        repository = new TeacherRepository(database);
     }
 
     @After
@@ -55,8 +57,6 @@ public class TeacherTest {
 
     @Test
     public void test001() throws Exception {
-
-        TeacherRepository repository = new TeacherRepository(database);
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Teacher teacher = repository.findById(1);
@@ -76,6 +76,7 @@ public class TeacherTest {
             Assert.assertNotNull(teacher);
             Assert.assertEquals("0032", teacher.getCode());
             Assert.assertEquals("ABCD", teacher.getPrefixCode());
+            System.out.println(teacher);
         }
 
         try (Transaction tx = database.transactionManager().newTransactionReadWrite()) {
@@ -91,6 +92,41 @@ public class TeacherTest {
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Assert.assertEquals(8193, repository.countAll());
         }
+    }
+
+    @Test
+    public void test002() throws Exception {
+
+        // create
+        try (Transaction tx = database.transactionManager().newTransactionReadWrite()) {
+            Teacher teacher = newTeacher();
+            teacher.setCode("0032");
+            teacher.setPrefixCode("ABCD");
+            repository.insert(teacher);
+            tx.commit();
+        }
+
+        try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
+            Teacher teacher = repository.findById(1);
+            Assert.assertNotNull(teacher);
+            Assert.assertNotNull(teacher.getCreationTimestamp());
+            Assert.assertNull(teacher.getUpdateTimestamp());
+        }
+
+        try (Transaction tx = database.transactionManager().newTransactionReadWrite()) {
+            Teacher teacher = repository.findById(1);
+            teacher.setCode("DEFG");
+            repository.update(teacher);
+            tx.commit();
+        }
+
+        try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
+            Teacher teacher = repository.findByIdForUpdate(1);
+            Assert.assertNotNull(teacher);
+            Assert.assertNotNull(teacher.getCreationTimestamp());
+            Assert.assertNotNull(teacher.getUpdateTimestamp());
+        }
+
     }
 
     private static class TeacherRepository extends TeacherAbstractRepository {

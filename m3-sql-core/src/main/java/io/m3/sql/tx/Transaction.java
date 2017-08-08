@@ -21,7 +21,11 @@ public interface Transaction extends AutoCloseable {
 
     PreparedStatement insert(String sql);
 
+    PreparedStatement insertAutoIncrement(String sql);
+
     PreparedStatement update(String sql);
+
+    PreparedStatement delete(String sql);
 
     PreparedStatement batch(String sql);
 

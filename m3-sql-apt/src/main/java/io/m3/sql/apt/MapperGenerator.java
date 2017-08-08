@@ -1,11 +1,13 @@
 package io.m3.sql.apt;
 
+import io.m3.sql.annotation.AutoIncrement;
 import io.m3.sql.annotation.Column;
 import io.m3.sql.annotation.PrimaryKey;
 import io.m3.sql.id.Identifier;
 import io.m3.sql.id.NoIdentifierGenerator;
 import io.m3.sql.id.SequenceGenerator;
 import io.m3.sql.jdbc.Mapper;
+import io.m3.sql.jdbc.MapperWithAutoIncrement;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
@@ -55,6 +57,9 @@ final class MapperGenerator implements Generator {
         writeInsert(writer, descriptor, env);
         writeUpdate(writer, descriptor);
 
+        writeSetId(writer, descriptor);
+
+
         writeNewLine(writer);
         writer.write("}");
         writer.close();
@@ -70,7 +75,13 @@ final class MapperGenerator implements Generator {
         writer.write("final class ");
         writer.write(descriptor.simpleName() + "Mapper");
         writer.write(" implements ");
-        writer.write(Mapper.class.getName());
+
+        if (Helper.hasAutoIncrementPK(descriptor)) {
+            writer.write(MapperWithAutoIncrement.class.getName());
+        } else {
+            writer.write(Mapper.class.getName());
+        }
+
         writer.write("<");
         writer.write(descriptor.element().getSimpleName().toString());
         writer.write(">");
@@ -149,7 +160,7 @@ final class MapperGenerator implements Generator {
 
     }
 
-    private static void writeInsert(Writer writer, PojoDescriptor descriptor,ProcessingEnvironment env) throws IOException {
+    private static void writeInsert(Writer writer, PojoDescriptor descriptor, ProcessingEnvironment env) throws IOException {
 
         writeNewLine(writer);
         writer.write("    public void insert(");
@@ -164,8 +175,15 @@ final class MapperGenerator implements Generator {
         int index = 1;
 
         for (PojoPropertyDescriptor ppd : descriptor.ids()) {
-                writePsProperty(writer, ppd, index++);
+            if (ppd.getter().getAnnotation(AutoIncrement.class) != null) {
+                writer.write("        // Primary Key [");
+                writer.write(ppd.name());
+                writer.write("] is auto increment -> skip");
                 writeNewLine(writer);
+                continue;
+            }
+            writePsProperty(writer, ppd, index++);
+            writeNewLine(writer);
         }
 
         for (PojoPropertyDescriptor ppd : descriptor.properties()) {
@@ -254,6 +272,42 @@ final class MapperGenerator implements Generator {
     }
 
 
+    private static void writeSetId(Writer writer, PojoDescriptor descriptor) throws IOException {
+
+        if (!hasAutoIncrementPK(descriptor)) {
+            return;
+        }
+
+        int index = 1;
+
+        for (PojoPropertyDescriptor ppd : descriptor.ids()) {
+
+            if (ppd.getter().getAnnotation(AutoIncrement.class) == null) {
+                continue;
+            }
+
+            writer.write("    public void setId(");
+            writer.write(descriptor.element().getSimpleName().toString());
+            writer.write(" pojo, ");
+            writer.write(ResultSet.class.getName());
+            writer.write(" rs) throws ");
+            writer.write(SQLException.class.getName());
+            writer.write(" {");
+            writeNewLine(writer);
+            writer.write("        pojo.");
+            writer.write(ppd.setter().getSimpleName().toString());
+            writer.write("(rs.");
+            writer.write(preparedStatementGetter(ppd.getter().getReturnType().toString()));
+            writer.write("(" + index++ + "));");
+            writeNewLine(writer);
+        }
+
+        writer.write("    }");
+        writeNewLine(writer);
+
+    }
+
+
     private static boolean isLinkToPrimitive(String type) {
 
         return ("java.lang.Integer".equals(type) ||
@@ -264,11 +318,6 @@ final class MapperGenerator implements Generator {
                 "java.lang.Float".equals(type));
 
     }
-
-
-
-
-
 
 
 }

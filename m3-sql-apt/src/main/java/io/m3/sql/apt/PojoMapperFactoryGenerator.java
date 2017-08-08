@@ -1,6 +1,7 @@
 package io.m3.sql.apt;
 
 import io.m3.sql.jdbc.Mapper;
+import io.m3.sql.jdbc.MapperWithAutoIncrement;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
@@ -44,7 +45,13 @@ final class PojoMapperFactoryGenerator implements Generator {
         for (PojoDescriptor desc : descriptors) {
             writeNewLine(writer);
             writer.write("    public static final ");
-            writer.write(Mapper.class.getName());
+
+            if (hasAutoIncrementPK(desc)) {
+                writer.write(MapperWithAutoIncrement.class.getName());
+            } else {
+                writer.write(Mapper.class.getName());
+            }
+
             writer.write("<");
             writer.write(desc.element().toString());
             writer.write("> ");
@@ -62,4 +69,5 @@ final class PojoMapperFactoryGenerator implements Generator {
         writer.write('}');
         writer.close();
     }
+
 }

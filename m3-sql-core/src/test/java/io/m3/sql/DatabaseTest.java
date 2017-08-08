@@ -11,7 +11,7 @@ import javax.sql.DataSource;
  */
 public class DatabaseTest {
 
-    @Test
+   // @Test
     public void simpleTest() {
 
         DataSource ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");

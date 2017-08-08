@@ -1,10 +1,8 @@
 package io.m3.sql.bench;
 
 import io.m3.sql.Database;
-import io.m3.sql.bench.pojo.Factory;
-import io.m3.sql.bench.pojo.Person;
-import io.m3.sql.bench.pojo.PersonAbstractRepository;
-import io.m3.sql.bench.pojo.PersonJPA;
+import io.m3.sql.Module;
+import io.m3.sql.bench.pojo.*;
 import io.m3.sql.dialect.H2Dialect;
 import io.m3.sql.impl.DatabaseImpl;
 import io.m3.sql.tx.Transaction;
@@ -61,7 +59,7 @@ public class InsertBench {
                 .addAnnotatedClass(PersonJPA.class)
                 .buildSessionFactory(serviceRegistryBuilder.build());
 
-        DATABASE = new DatabaseImpl(ds, new H2Dialect(), "");
+        DATABASE = new DatabaseImpl(ds, new H2Dialect(), "", new io.m3.sql.bench.pojo.IoM3SqlBenchPojoModule("bench",""));
 
         PERSON_ABSTRACT_REPOSITORY = new PersonAbstractRepository(DATABASE) {
         };

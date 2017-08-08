@@ -135,7 +135,7 @@ public final class ToStringBuilder {
     		return this;
     	}
     	insert(key);
-    	insert("=[").insert((value == null) ? NULL : value.toString()).insert("] ");
+    	insert("=[").insert(value).insert("] ");
         return this;
     }
 

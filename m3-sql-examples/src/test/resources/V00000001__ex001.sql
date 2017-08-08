@@ -8,12 +8,8 @@ CREATE TABLE `student` (
   PRIMARY KEY (`id`)
 );
 
-CREATE TABLE `teacher` (
-  id             int,
-  code           VARCHAR(64),
-  prefix_code    VARCHAR(32),
+CREATE TABLE `auto_increment_pojo` (
+  id             int         auto_increment,
+  name           VARCHAR(64),
   PRIMARY KEY (`id`)
 );
-
-
-CREATE SEQUENCE seq_teacher;

@@ -1,5 +1,6 @@
 package io.m3.sql.apt;
 
+import io.m3.sql.annotation.AutoIncrement;
 import io.m3.sql.annotation.PrimaryKey;
 import io.m3.sql.id.Identifier;
 import io.m3.sql.id.NoIdentifierGenerator;
@@ -240,5 +241,15 @@ final class Helper {
         }
 
         return clazz;
+    }
+
+
+    public static boolean hasAutoIncrementPK(PojoDescriptor desc) {
+        for (PojoPropertyDescriptor ppd : desc.ids()) {
+            if (ppd.getter().getAnnotation(AutoIncrement.class) != null) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -3,6 +3,8 @@ package io.m3.sql.apt.ex002;
 import io.m3.sql.annotation.*;
 import io.m3.sql.id.SequenceGenerator4Long;
 
+import java.sql.Timestamp;
+
 @Table( value = "teacher")
 public interface Teacher {
 
@@ -24,4 +26,15 @@ public interface Teacher {
 
     void setPrefixCode(String prefixCode);
 
+    @Column("create_ts")
+    @CreateTimestamp
+    Timestamp getCreationTimestamp();
+
+    void setCreationTimestamp(Timestamp timestamp);
+
+    @Column("update_ts")
+    @UpdateTimestamp
+    Timestamp getUpdateTimestamp();
+
+    void setUpdateTimestamp(Timestamp timestamp);
 }

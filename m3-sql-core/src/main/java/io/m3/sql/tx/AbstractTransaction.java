@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,7 +91,39 @@ public abstract class AbstractTransaction implements Transaction {
         return ps;
     }
 
+    public final PreparedStatement insertAutoIncrement(String sql) {
+
+        PreparedStatement ps = this.statements.get(sql);
+
+        if (ps == null) {
+            try {
+                ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            } catch (SQLException cause) {
+                throw new TransactionException("Failed to prepare statement for SQL [" + sql + "]", cause);
+            }
+            this.statements.put(sql, ps);
+        }
+
+        return ps;
+    }
+
     public final PreparedStatement update(String sql) {
+
+        PreparedStatement ps = this.statements.get(sql);
+
+        if (ps == null) {
+            try {
+                ps = connection.prepareStatement(sql);
+            } catch (SQLException cause) {
+                throw new TransactionException("Failed to prepare statement for SQL [" + sql + "]", cause);
+            }
+            this.statements.put(sql, ps);
+        }
+
+        return ps;
+    }
+
+    public final PreparedStatement delete(String sql) {
 
         PreparedStatement ps = this.statements.get(sql);
 

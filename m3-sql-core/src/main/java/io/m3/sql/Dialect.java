@@ -1,45 +1,37 @@
 package io.m3.sql;
 
 import io.m3.sql.desc.SqlColumn;
+import io.m3.sql.desc.SqlSequence;
 import io.m3.sql.desc.SqlTable;
 
-import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
-public abstract class Dialect {
+public interface Dialect {
 
-
-    public void wrap(Appendable appendable,SqlColumn column, boolean alias) {
-
-        try {
-            if (alias) {
-                appendable.append(column.table().alias());
-                appendable.append('.');
-            }
-
-            appendable.append(column.toSql());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    enum Name {
+        H2
     }
 
-    public void wrap(Appendable appendable,SqlTable table, boolean alias) {
-        try {
-            appendable.append(table.name());
-            if (alias) {
-                appendable.append(alias());
-                appendable.append(table.alias());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    String nextVal(SqlSequence sequence);
 
-    public String alias() {
-        return " AS ";
-    }
+    void wrap(Appendable appendable, SqlTable table, boolean alias);
 
-    public abstract String nextVal(String sequence);
+    void wrap(Appendable appendable, SqlColumn targetColumn, boolean alias);
+
+    /*
+    SqlXml fromJdbcSqlXml(ResultSet rs, int index) throws SQLException;
+
+    SqlJson fromJdbcSqlJson(ResultSet rs, int index) throws SQLException;
+
+    SqlXml toJdbcSqlXml(FastByteArrayInputStream is);
+
+    SqlJson createSqlJson(Map<String,String> value);
+
+    SqlJson createSqlJson(String value);
+    */
 }

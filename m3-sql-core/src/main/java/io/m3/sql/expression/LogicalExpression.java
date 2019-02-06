@@ -20,16 +20,16 @@ final class LogicalExpression implements Expression{
     private final Expression[] others;
 
 
-    public LogicalExpression(String op, Expression left, Expression right, Expression... others) {
+    LogicalExpression(String op, Expression left, Expression right, Expression... others) {
         this.operation = op;
         this.left = left;
         this.right = right;
-        this.others = others;
+        this.others = others.clone();
     }
 
     @Override
-    public String build(Dialect dialect, String alias) {
-        StringBuilder builder = new StringBuilder(256);
+    public String build(Dialect dialect, boolean alias) {
+        StringBuilder builder = new StringBuilder(512);
         builder.append('(');
         builder.append(this.left.build(dialect, alias));
         builder.append(' ');
@@ -37,11 +37,11 @@ final class LogicalExpression implements Expression{
         builder.append(' ');
         builder.append(this.right.build(dialect, alias));
 
-        if (this.others != null && this.others.length > 0) {
+        if (this.others.length > 0) {
             for (Expression other : others) {
                 builder.append(' ');
                 builder.append(this.operation);
-                builder.append(" ");
+                builder.append(' ');
                 builder.append(other.build(dialect, alias));
             }
         }
@@ -51,6 +51,27 @@ final class LogicalExpression implements Expression{
             LOGGER.debug("Fragment LogicalExpression -> [{}]", builder);
         }
 
+        return builder.toString();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder(512);
+        builder.append('(');
+        builder.append(this.left.toString());
+        builder.append(' ');
+        builder.append(this.operation);
+        builder.append(' ');
+        builder.append(this.right.toString());
+        if (this.others.length > 0) {
+            for (Expression other : others) {
+                builder.append(' ');
+                builder.append(this.operation);
+                builder.append(' ');
+                builder.append(other.toString());
+            }
+        }
+        builder.append(')');
         return builder.toString();
     }
 

@@ -20,7 +20,7 @@ public final class UnsafeString {
     private UnsafeString() {
     }
 
-    public final static String buildUnsafe(char[] chars) {
+    public final static String valueOf(char[] chars) {
         String mutable = new String();// an empty string to hack
         UNSAFE.putObject(mutable, VALUE_OFFSET, chars);
         return mutable;

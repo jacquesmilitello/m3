@@ -1,13 +1,13 @@
 package io.m3.util.hash;
 
-import org.junit.Test;
 import io.m3.util.unsafe.UnsafeHelper;
 import io.m3.util.unsafe.UnsafeString;
+import org.junit.jupiter.api.Test;
 
-public class XXHashTest {
+class XXHashTest {
 
 	@Test
-	public void test() {
+	void test() {
 
 		String value = "Hello World !";
 		System.out.println("---> [" + Hashing.xx(123456, value) + "]");
@@ -15,7 +15,7 @@ public class XXHashTest {
 	}
 
 	@Test
-	public void tests() {
+	void tests() {
 
 		String value = "Hello World !";
 		System.out.println("2---> [" + Hashing.xx(123456, new HashReader4String(UnsafeString.getChars(value))) + "]");

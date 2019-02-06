@@ -1,94 +1,172 @@
 package io.m3.sql.tx;
 
-import io.m3.sql.Database;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.sql.DataSource;
+import java.lang.invoke.MethodHandles;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
+
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
-public final class TransactionManagerImpl implements TransactionManager{
+public class TransactionManagerImpl implements TransactionManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransactionManagerImpl.class);
+    /**
+     * SLF4J Logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private final ThreadLocal<Transaction> transactions = new ThreadLocal<>();
+    private final ThreadLocal<TransactionImpl> transactions = new ThreadLocal<>();
 
     private final DataSource dataSource;
 
-    public TransactionManagerImpl(Database database) {
-        this.dataSource = database.dataSource();
+   // private final int defaultIsolationLevel;
+
+    private boolean enforceReadOnly = false;
+
+    public TransactionManagerImpl(DataSource dataSource) {
+        this.dataSource = dataSource;
+        try (Connection conn = dataSource.getConnection()) {
+           // this.defaultIsolationLevel = conn.getTransactionIsolation();
+        } catch (SQLException cause) {
+            //throw new TransactionSystemException("Cannot retreive default TransactionIsolationLevel", cause);
+        }
     }
 
-    @Override
-    public Transaction current() {
-
-        Transaction tx = this.transactions.get();
-
-        if (tx == null) {
-            throw new TransactionException("no current Transaction -> call newTransactionReadOnly() or call newTransactionReadWrite()");
-        }
-
-        return tx;
+    public void setEnforceReadOnly(boolean enforceReadOnly) {
+        this.enforceReadOnly = enforceReadOnly;
     }
 
     @Override
     public Transaction newTransactionReadOnly() {
-
-        if (transactions.get() != null) {
-            throw new TransactionException("newTransactionReadOnly() -> a transaction already exist [" + transactions.get() + "]");
-        }
-
-        Connection connection;
-        try {
-            connection = this.dataSource.getConnection();
-        } catch (SQLException cause) {
-            throw new TransactionException("newTransactionReadOnly() -> failed to get a new connection", cause);
-        }
-
-        Transaction tx;
-        try {
-           tx = new TransactionReadOnly(this, connection);
-        } catch (SQLException cause) {
-            throw new TransactionException("newTransactionReadOnly() -> failed to create a new TransactionReadOnly", cause);
-        }
-
-        this.transactions.set(tx);
-
-        return tx;
+        return null;
     }
 
     @Override
     public Transaction newTransactionReadWrite() {
-
-        if (transactions.get() != null) {
-            throw new TransactionException("newTransactionReadWrite() -> a transaction already exist [" + transactions.get() + "]");
-        }
-
-        Connection connection;
-        try {
-            connection = this.dataSource.getConnection();
-        } catch (SQLException cause) {
-            throw new TransactionException("newTransactionReadWrite() -> failed to get a new connection", cause);
-        }
-
-        Transaction tx;
-        try {
-            tx = new TransactionReadWrite(this, connection);
-        } catch (SQLException cause) {
-            throw new TransactionException("newTransactionReadWrite() -> failed to create a new TransactionReadWrite", cause);
-        }
-
-        this.transactions.set(tx);
-
-        return tx;
+        return null;
     }
 
-
-    public void remove() {
-        this.transactions.remove();
+    @Override
+    public Transaction current() {
+        Transaction transaction = this.transactions.get();
+        if (transaction == null) {
+           // throw new NoTransactionException("...");
+        }
+        return transaction;
     }
+
+    /*
+    @Override
+    public void commit(TransactionStatus transactionStatus) throws TransactionException {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("commit({})", transactionStatus);
+        }
+        if (!transactionStatus.isNewTransaction()) {
+            // It's a txStatus inside another txStatus
+            return;
+        }
+        if (((SqlTransactionStatus) transactionStatus).isReadOnly()) {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Commit a read-only -> rollback");
+                rollback(transactionStatus);
+                return;
+            }
+        }
+        try {
+            TransactionImpl tx = this.transactions.get();
+            try {
+                tx.commit();
+            } finally {
+                tx.close();
+            }
+        } finally {
+            this.transactions.remove();
+        }
+    }
+
+    @Override
+    public Transaction openNewReadOnly() {
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        def.setReadOnly(true);
+        return getTransaction(def).getTransaction();
+    }
+
+    @Override
+    public SqlTransactionStatus getTransaction(TransactionDefinition definition) throws TransactionException {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("getTransaction({})", definition);
+        }
+        TransactionImpl tx = transactions.get();
+        if (tx != null) {
+            // get TX inside another TX
+            return new SqlTransactionStatus(tx, definition.isReadOnly(), false);
+        }
+        final Connection conn;
+        try {
+            conn = dataSource.getConnection();
+            prepareTransactionalConnection(conn, definition);
+            conn.setAutoCommit(false);
+        } catch (SQLException cause) {
+            throw new CannotCreateTransactionException("Error during Datasource.getConnection", cause);
+        }
+        TransactionImpl transaction = new TransactionImpl(conn, interceptor);
+        if (definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
+            try {
+                conn.setTransactionIsolation(definition.getIsolationLevel());
+            } catch (SQLException cause) {
+                transaction.close();
+                throw new TransactionSystemException(
+                        "Cannot set specific TransactionIsolationLevel [" + definition.getIsolationLevel() + "]",
+                        cause);
+            }
+            transaction.addHook(() -> {
+                try {
+                    conn.setTransactionIsolation(defaultIsolationLevel);
+                } catch (SQLException cause) {
+                    throw new TransactionSystemException("Cannot reset TransactionIsolationLevel", cause);
+                }
+            });
+        }
+        this.transactions.set(transaction);
+        return new SqlTransactionStatus(transaction, definition.isReadOnly());
+    }
+
+    @Override
+    public void rollback(TransactionStatus transactionStatus) throws TransactionException {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("rollback({})", transactionStatus);
+        }
+        if (!transactionStatus.isNewTransaction()) {
+            // a transaction inside another one.
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("rollback({}) -> skip", transactionStatus);
+            }
+            return;
+        }
+        try {
+            TransactionImpl tx = this.transactions.get();
+            try {
+                tx.rollback();
+            } finally {
+                tx.close();
+            }
+        } finally {
+            this.transactions.remove();
+        }
+    }
+
+    protected void prepareTransactionalConnection(Connection con, TransactionDefinition definition)
+            throws SQLException {
+        if (enforceReadOnly && definition.isReadOnly()) {
+            try (Statement stmt = con.createStatement()) {
+                stmt.executeUpdate("SET TRANSACTION READ ONLY");
+            }
+        }
+    }
+    */
 }

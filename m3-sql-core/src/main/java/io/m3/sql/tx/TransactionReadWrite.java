@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 /**
- * @author <a href="mailto:j.militello@olky.eu">Jacques Militello</a>
+ * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
 final class TransactionReadWrite extends AbstractTransaction {
 

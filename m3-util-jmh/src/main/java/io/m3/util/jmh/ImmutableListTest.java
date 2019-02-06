@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import io.m3.util.ImmutableList;
+import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -44,8 +44,8 @@ public class ImmutableListTest {
             integer[i] = i;
             strings[i] = "HELLO WOLRD" + i;
         }
-        IMMUTABLE_INTEGER = ImmutableList.of(integer);
-        IMMUTABLE_STRING = ImmutableList.of(strings);
+        IMMUTABLE_INTEGER = ImmutableList.copyOf(integer);
+        IMMUTABLE_STRING = ImmutableList.copyOf(strings);
     }
 
     @Benchmark

@@ -4,18 +4,25 @@
 
 	<groupId>io.m3</groupId>
 	<artifactId>m3</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.0</version>
 	<packaging>pom</packaging>
 
 	<name>m3</name>
 
 	<properties>
-		<org.slf4j.version>1.7.25</org.slf4j.version>
-		<org.apache.logging.log4j.version>2.8.1</org.apache.logging.log4j.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
 
-		<junit.version>4.12</junit.version>
-		<com.h2database.version>1.4.194</com.h2database.version>
-		<org.mockito.version>2.7.19</org.mockito.version>
+		<org.slf4j.version>1.7.25</org.slf4j.version>
+		<org.apache.logging.log4j.version>2.11.1</org.apache.logging.log4j.version>
+
+		<com.google.guava.version>27.0.1-jre</com.google.guava.version>
+
+		<org.junit.jupiter.version>5.3.1</org.junit.jupiter.version>
+		<com.h2database.version>1.4.197</com.h2database.version>
+		<org.mockito.version>2.23.4</org.mockito.version>
+
 	</properties>
 
 	<dependencyManagement>
@@ -35,12 +42,13 @@
 				<scope>import</scope>
 			</dependency>
 
-
+			<!-- testing -->
 			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit.version}</version>
-				<scope>test</scope>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>${org.junit.jupiter.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
 			</dependency>
 
 			<dependency>
@@ -57,6 +65,19 @@
 				<scope>test</scope>
 			</dependency>
 
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${com.google.guava.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>*</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+
+				</exclusions>
+			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 
@@ -66,10 +87,10 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.6.1</version>
+					<version>3.8.0</version>
 					<configuration>
-						<source>1.8</source>
-						<target>1.8</target>
+						<source>${maven.compiler.source}</source>
+						<target>${maven.compiler.target}</target>
 						<encoding>UTF-8</encoding>
 						<fork>true</fork>
 						<proc>none</proc>
@@ -78,6 +99,14 @@
 						</compilerArgs>
 					</configuration>
 				</plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.22.1</version>
+                    <configuration>
+                        <testFailureIgnore>false</testFailureIgnore>
+                    </configuration>
+                </plugin>
 			</plugins>
 		</pluginManagement>
 	</build>

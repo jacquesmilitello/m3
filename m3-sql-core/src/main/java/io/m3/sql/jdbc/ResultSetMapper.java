@@ -1,5 +1,7 @@
 package io.m3.sql.jdbc;
 
+import io.m3.sql.Dialect;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -8,6 +10,6 @@ import java.sql.SQLException;
  */
 public interface ResultSetMapper<T> {
 
-    T map(ResultSet rs) throws SQLException;
+    T map(Dialect dialect, ResultSet rs) throws SQLException;
 
 }

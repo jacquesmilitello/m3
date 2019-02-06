@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.m3</groupId>
         <artifactId>m3</artifactId>
-        <version>0.1.0</version>
+        <version>0.2.0</version>
     </parent>
     <artifactId>m3-util-jmh</artifactId>
     <name>m3-util-jmh</name>

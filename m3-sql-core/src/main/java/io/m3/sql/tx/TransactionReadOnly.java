@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 /**
- * @author <a href="mailto:j.militello@olky.eu">Jacques Militello</a>
+ * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
 final class TransactionReadOnly extends AbstractTransaction {
 
@@ -41,6 +41,11 @@ final class TransactionReadOnly extends AbstractTransaction {
 	@Override
 	public Timestamp timestamp() {
 		throw new TransactionException("no timestamp -> READ ONLY Transaction");
+	}
+
+	@Override
+	public void addHook(Runnable runnable) {
+
 	}
 
 }

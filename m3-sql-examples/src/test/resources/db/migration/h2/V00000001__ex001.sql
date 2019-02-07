@@ -3,7 +3,7 @@ CREATE TABLE `student` (
   code           VARCHAR(64),
   age            int,
   overall_rating long,
-  created_at     datetime(3),
+  created_at     TIMESTAMP,
   readOnly       VARCHAR(100),
   PRIMARY KEY (`id`)
 );

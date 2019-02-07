@@ -7,11 +7,9 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStreamReader;
-import java.sql.SQLException;
-import java.util.Properties;
 
 
 public class PersonTest {
@@ -23,7 +21,7 @@ public class PersonTest {
 
         RunScript.execute(ds.getConnection(), new InputStreamReader(PersonTest.class.getResourceAsStream("/bench.sql")));
 
-        StandardServiceRegistryBuilder serviceRegistryBuilder =  new StandardServiceRegistryBuilder();
+        StandardServiceRegistryBuilder serviceRegistryBuilder = new StandardServiceRegistryBuilder();
         serviceRegistryBuilder.applySetting(Environment.DATASOURCE, ds);
 
         SessionFactory sessionFactory = new Configuration()

@@ -20,21 +20,21 @@ final class JoinClause extends AbstractBuilder {
     private final JoinType type;
     private final SqlTable targetTable;
     private final SqlColumn targetColumn;
-    private final SqlTable from;
     private final SqlColumn column;
     private final Expression expression;
 
-    public JoinClause(Database database, JoinType type, SqlTable targetTable, SqlColumn targetColumn, SqlTable from, SqlColumn column) {
+    public JoinClause(Database database, JoinType type, SqlTable targetTable, SqlColumn targetColumn,
+                      SqlTable from, SqlColumn column) {
         this(database, type, targetTable, targetColumn, from, column, null);
     }
 
-    public JoinClause(Database database, JoinType type, SqlTable targetTable, SqlColumn targetColumn, SqlTable from, SqlColumn column, Expression expression) {
+    public JoinClause(Database database, JoinType type, SqlTable targetTable, SqlColumn targetColumn,
+                      SqlTable from, SqlColumn column, Expression expression) {
         super(database);
         this.type = type;
         this.targetTable = targetTable;
-        this.targetColumn = targetColumn;
-        this.from = from;
-        this.column = column;
+        this.targetColumn = targetColumn.fromTable(targetTable);
+        this.column = column.fromTable(from);
         this.expression = expression;
     }
 
@@ -42,27 +42,16 @@ final class JoinClause extends AbstractBuilder {
 
         builder.append(' ');
         builder.append(this.type.name()).append(" JOIN ");
-        builder.append(this.table(this.targetTable, false));
+        builder.append(this.table(this.targetTable, true));
         builder.append(" ON ");
 
-        database().dialect().wrap(builder, this.targetTable, false);
-        builder.append('.');
-        database().dialect().wrap(builder, this.targetColumn, false);
+        database().dialect().wrap(builder, this.targetColumn, true);
         builder.append('=');
-
-        if (selectBuilder.hasAlias()) {
-            database().dialect().wrap(builder, this.column, true);
-        } else {
-            database().dialect().wrap(builder, this.from, false);
-            builder.append('.');
-            database().dialect().wrap(builder, this.column,false);
-        }
-
-
+        database().dialect().wrap(builder, this.column, true);
 
         if (this.expression != null) {
             builder.append(" AND ");
-            builder.append(this.expression.build(database().dialect(), null));
+            builder.append(this.expression.build(database().dialect(), true));
         }
 
         if (LOGGER.isDebugEnabled()) {

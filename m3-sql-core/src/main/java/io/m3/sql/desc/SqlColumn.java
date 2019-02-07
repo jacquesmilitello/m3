@@ -34,6 +34,14 @@ public abstract class SqlColumn {
         return this.name;
     }
 
+    public final SqlColumn fromTable(SqlTable targetTable) {
+        if (this.table.equals(targetTable)) {
+            return this;
+        }
+        return newColumFromAlias(targetTable);
+    }
+
+    protected abstract SqlColumn newColumFromAlias(SqlTable targetTable);
     /**
      * {@inheritDoc}
      */

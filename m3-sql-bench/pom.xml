@@ -12,7 +12,7 @@
     <artifactId>m3-sql-bench</artifactId>
 
     <properties>
-        <org.openjdk.jmh.version>1.18</org.openjdk.jmh.version>
+        <org.openjdk.jmh.version>1.21</org.openjdk.jmh.version>
     </properties>
 
     <dependencies>
@@ -48,12 +48,6 @@
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
             <version>${org.openjdk.jmh.version}</version>
@@ -78,7 +72,7 @@
             <plugin>
                 <groupId>org.bsc.maven</groupId>
                 <artifactId>maven-processor-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.3</version>
                 <executions>
                     <execution>
                         <id>process</id>

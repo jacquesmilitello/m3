@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
-final class TransactionReadOnly extends AbstractTransaction {
+/*final class TransactionReadOnly extends AbstractTransaction {
 
 	TransactionReadOnly(TransactionManagerImpl transactionManager, Connection connection) throws SQLException {
 		super(transactionManager, connection);
@@ -15,19 +15,16 @@ final class TransactionReadOnly extends AbstractTransaction {
 		connection.setReadOnly(true);
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public boolean isReadOnly() {
 		return true;
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public void commit() {
 		throw new RuntimeException("ReadOnly transaction -> commit not allowed.");
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public void rollback() {
 		try {
@@ -37,7 +34,6 @@ final class TransactionReadOnly extends AbstractTransaction {
 		}
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public Timestamp timestamp() {
 		throw new TransactionException("no timestamp -> READ ONLY Transaction");
@@ -49,3 +45,4 @@ final class TransactionReadOnly extends AbstractTransaction {
 	}
 
 }
+*/

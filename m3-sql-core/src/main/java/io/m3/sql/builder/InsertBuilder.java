@@ -2,6 +2,7 @@ package io.m3.sql.builder;
 
 import com.google.common.collect.ImmutableList;
 import io.m3.sql.Database;
+import io.m3.sql.Dialect;
 import io.m3.sql.desc.SqlPrimaryKey;
 import io.m3.sql.desc.SqlSingleColumn;
 import io.m3.sql.desc.SqlTable;
@@ -13,23 +14,20 @@ import org.slf4j.LoggerFactory;
  */
 public final class InsertBuilder extends AbstractBuilder {
 
-    /**
-     * SLF4J Logger.
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(InsertBuilder.class);
 
-    private final Database database;
     private final SqlTable table;
     private final ImmutableList<SqlPrimaryKey> keys;
     private final ImmutableList<SqlSingleColumn> columns;
 
-    public InsertBuilder(Database database, SqlTable table, SqlPrimaryKey key, ImmutableList<SqlSingleColumn> columns) {
+    public InsertBuilder(Database database, SqlTable table, SqlPrimaryKey key,
+                         ImmutableList<SqlSingleColumn> columns) {
         this(database, table, ImmutableList.of(key), columns);
     }
 
-    public InsertBuilder(Database database, SqlTable table, ImmutableList<SqlPrimaryKey> keys, ImmutableList<SqlSingleColumn> columns) {
+    public InsertBuilder(Database database, SqlTable table, ImmutableList<SqlPrimaryKey> keys,
+                         ImmutableList<SqlSingleColumn> columns) {
         super(database);
-        this.database = database;
         this.table = table;
         this.keys = keys;
         this.columns = columns;
@@ -39,7 +37,7 @@ public final class InsertBuilder extends AbstractBuilder {
         StringBuilder builder = new StringBuilder(2048);
         builder.append("INSERT INTO ");
         builder.append(table(this.table, false));
-        builderColumn(builder);
+        builderColumn(builder, this.database().dialect());
         builderValues(builder);
 
         String sql = builder.toString();
@@ -51,7 +49,7 @@ public final class InsertBuilder extends AbstractBuilder {
 
     private void builderValues(StringBuilder builder) {
         builder.append(" VALUES (");
-        for (SqlPrimaryKey key : this.keys) {
+        for (int i = 0; i < this.keys.size(); i++) {
             builder.append("?,");
         }
         for (SqlSingleColumn column : this.columns) {
@@ -62,36 +60,20 @@ public final class InsertBuilder extends AbstractBuilder {
         builder.setCharAt(builder.length() - 1, ')');
     }
 
-    private void builderColumn(StringBuilder builder) {
+    private void builderColumn(StringBuilder builder, Dialect dialect) {
         builder.append(" (");
         for (SqlPrimaryKey key : this.keys) {
-            builder.append("`");
-            builder.append(key.name());
-            builder.append("`,");
+            dialect.wrap(builder, key, false);
+            builder.append(",");
         }
         for (SqlSingleColumn column : this.columns) {
             if (column.isInsertable()) {
-                builder.append("`");
-                builder.append(column.name());
-                builder.append("`,");
+                dialect.wrap(builder, column, false);
+                builder.append(",");
             }
         }
 
         builder.setCharAt(builder.length() - 1, ')');
     }
-//
-//	private StringBuilder table(SqlTable table) {
-//		StringBuilder builder = new StringBuilder(64);
-//		String schema = database.getSchema(table);
-//		if (!Strings.isEmpty(schema)) {
-//			builder.append("`");
-//			builder.append(schema);
-//			builder.append("`.");
-//		}
-//		builder.append("`");
-//		builder.append(table.name());
-//		builder.append("`");
-//		return builder;
-//	}
 
 }

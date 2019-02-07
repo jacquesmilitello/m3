@@ -43,12 +43,14 @@ public class TransactionManagerImpl implements TransactionManager {
 
     @Override
     public Transaction newTransactionReadOnly() {
-        return null;
+        return getTransaction(new TransactionDefinition() {
+        });
     }
 
     @Override
     public Transaction newTransactionReadWrite() {
-        return null;
+        return getTransaction(new TransactionDefinition() {
+        });
     }
 
     @Override
@@ -58,6 +60,51 @@ public class TransactionManagerImpl implements TransactionManager {
            // throw new NoTransactionException("...");
         }
         return transaction;
+    }
+
+    public static interface TransactionDefinition {
+
+    }
+
+    public TransactionImpl getTransaction(TransactionDefinition definition) throws TransactionException {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("getTransaction({})", definition);
+        }
+        TransactionImpl tx = transactions.get();
+        if (tx != null) {
+            // get TX inside another TX
+            //return new SqlTransactionStatus(tx, definition.isReadOnly(), false);
+        }
+        final Connection conn;
+        try {
+            conn = dataSource.getConnection();
+            //prepareTransactionalConnection(conn, definition);
+            conn.setAutoCommit(false);
+        } catch (SQLException cause) {
+            //throw new CannotCreateTransactionException("Error during Datasource.getConnection", cause);
+            return null;
+        }
+        tx = new TransactionImpl(conn);
+       /* if (definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
+            try {
+                conn.setTransactionIsolation(definition.getIsolationLevel());
+            } catch (SQLException cause) {
+                transaction.close();
+                throw new TransactionSystemException(
+                        "Cannot set specific TransactionIsolationLevel [" + definition.getIsolationLevel() + "]",
+                        cause);
+            }
+            transaction.addHook(() -> {
+                try {
+                    conn.setTransactionIsolation(defaultIsolationLevel);
+                } catch (SQLException cause) {
+                    throw new TransactionSystemException("Cannot reset TransactionIsolationLevel", cause);
+                }
+            });
+        }*/
+        this.transactions.set(tx);
+        return tx;
+        //return new SqlTransactionStatus(transaction, definition.isReadOnly());
     }
 
     /*

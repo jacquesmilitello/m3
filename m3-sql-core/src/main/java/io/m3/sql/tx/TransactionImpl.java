@@ -1,11 +1,14 @@
 package io.m3.sql.tx;
 
+import io.m3.sql.M3SqlException;
 import io.m3.sql.jdbc.M3PreparedStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +37,11 @@ final class TransactionImpl implements Transaction {
 
     @Override
     public void commit() {
-
+        try {
+            this.connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -54,22 +61,50 @@ final class TransactionImpl implements Transaction {
 
     @Override
     public M3PreparedStatement select(String sql) {
-        return null;
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("select({})", sql);
+        }
+        try {
+            return new M3PreparedStatementImpl(this.connection.prepareStatement(sql));
+        } catch (SQLException cause) {
+            throw new M3SqlException("Failed to prepare statement for SQL [" + sql + "]", cause);
+        }
     }
 
     @Override
     public M3PreparedStatement insert(String sql) {
-        return null;
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("INSERT : [{}]", sql);
+        }
+        try {
+            return new M3PreparedStatementImpl(this.connection.prepareStatement(sql));
+        } catch (SQLException cause) {
+           throw new M3SqlException("Failed to prepare statement for SQL [" + sql + "]", cause);
+        }
     }
 
     @Override
     public M3PreparedStatement insertAutoIncrement(String sql) {
-        return null;
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("INSERT AutoIncrement : [{}]", sql);
+        }
+        try {
+            return new M3PreparedStatementImpl(this.connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS));
+        } catch (SQLException cause) {
+            throw new M3SqlException("Failed to prepare statement for SQL [" + sql + "]", cause);
+        }
     }
 
     @Override
     public M3PreparedStatement update(String sql) {
-        return null;
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("update : [{}]", sql);
+        }
+        try {
+            return new M3PreparedStatementImpl(this.connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS));
+        } catch (SQLException cause) {
+            throw new M3SqlException("Failed to prepare statement for SQL [" + sql + "]", cause);
+        }
     }
 
     @Override

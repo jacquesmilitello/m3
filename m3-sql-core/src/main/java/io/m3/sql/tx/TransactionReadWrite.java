@@ -10,11 +10,8 @@ import java.sql.Timestamp;
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
-final class TransactionReadWrite extends AbstractTransaction {
+/*final class TransactionReadWrite extends AbstractTransaction {
 
-	/**
-	 * SLF4J Logger.
-	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(TransactionReadWrite.class);
 
 	private boolean active = true;
@@ -25,13 +22,11 @@ final class TransactionReadWrite extends AbstractTransaction {
 		connection.setReadOnly(false);
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public boolean isReadOnly() {
 		return false;
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public void commit() {
 		active = false;
@@ -42,7 +37,6 @@ final class TransactionReadWrite extends AbstractTransaction {
 		}
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public void rollback() {
 		active = false;
@@ -53,13 +47,11 @@ final class TransactionReadWrite extends AbstractTransaction {
 		}
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public Timestamp timestamp() {
 		throw new UnsupportedOperationException();
 	}
 
-	/** {@inheritDoc} */
 	@Override
 	public void close() {
 
@@ -72,4 +64,6 @@ final class TransactionReadWrite extends AbstractTransaction {
 			super.close();
 		}
 	}
+
 }
+*/

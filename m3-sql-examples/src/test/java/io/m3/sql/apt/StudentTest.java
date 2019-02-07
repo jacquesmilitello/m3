@@ -2,48 +2,49 @@ package io.m3.sql.apt;
 
 
 import io.m3.sql.Database;
+import io.m3.sql.Dialect;
 import io.m3.sql.apt.ex001.Student;
 import io.m3.sql.apt.ex001.StudentAbstractRepository;
 import io.m3.sql.builder.Order;
-import io.m3.sql.dialect.H2Dialect;
 import io.m3.sql.impl.DatabaseImpl;
 import io.m3.sql.jdbc.PreparedStatementSetter;
 import io.m3.sql.jdbc.ResultSetMappers;
 import io.m3.sql.tx.Transaction;
+import io.m3.sql.tx.TransactionManager;
+import io.m3.sql.tx.TransactionManagerImpl;
+import org.flywaydb.core.Flyway;
 import org.h2.jdbcx.JdbcConnectionPool;
-import org.h2.tools.RunScript;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.collect.ImmutableList.of;
 import static io.m3.sql.apt.ex001.Factory.newStudent;
-import static io.m3.sql.apt.ex001.StudentDescriptor.*;
+import static io.m3.sql.apt.ex001.StudentDescriptor.AGE;
+import static io.m3.sql.apt.ex001.StudentDescriptor.ID;
+import static io.m3.sql.apt.ex001.StudentDescriptor.TABLE;
 import static io.m3.sql.desc.Projections.count;
-import static io.m3.util.ImmutableList.of;
 
-public class StudentTest {
+class StudentTest {
 
     private JdbcConnectionPool ds;
     private Database database;
 
-    @Before
-    public void before() throws Exception {
+    @BeforeEach
+    void before() throws Exception {
         ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
-        try (Connection connection = ds.getConnection()) {
-            RunScript.execute(connection, new InputStreamReader(StudentTest.class.getResourceAsStream("/V00000001__ex001.sql")));
-        }
-
-        database = new DatabaseImpl(ds, new H2Dialect(), "", new io.m3.sql.apt.ex001.IoM3SqlAptEx001Module("ex001", ""));
+        database = new DatabaseImpl(ds, Dialect.Name.H2, new TransactionManagerImpl(ds), "", new io.m3.sql.apt.ex001.IoM3SqlAptEx001Module("ex001", ""));
+        Flyway flyway = Flyway.configure().dataSource(ds).load();
+        flyway.migrate();
     }
 
-    @After
+    @AfterEach
     public void after() throws Exception {
         try (Connection connection = ds.getConnection()) {
             try (Statement st = connection.createStatement()) {
@@ -62,7 +63,7 @@ public class StudentTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Student student = repository.findById(1);
-            Assert.assertNull(student);
+            Assertions.assertNull(student);
             System.out.println(student);
         }
 
@@ -76,8 +77,8 @@ public class StudentTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Student student = repository.findById(1);
-            Assert.assertNotNull(student);
-            Assert.assertEquals(37, student.getAge().intValue());
+            Assertions.assertNotNull(student);
+            Assertions.assertEquals(37, student.getAge().intValue());
             System.out.println(student);
         }
 
@@ -90,8 +91,8 @@ public class StudentTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Student student = repository.findById(1);
-            Assert.assertNotNull(student);
-            Assert.assertEquals(38, student.getAge().intValue());
+            Assertions.assertNotNull(student);
+            Assertions.assertEquals(38, student.getAge().intValue());
             System.out.println(student);
         }
 
@@ -129,12 +130,12 @@ public class StudentTest {
         }
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
-            Assert.assertEquals(60, repository.countAll());
+            Assertions.assertEquals(60, repository.countAll());
 
             List<Long> values = repository.countGroupByAge();
-            Assert.assertEquals(Long.valueOf(10), values.get(0));
-            Assert.assertEquals(Long.valueOf(20), values.get(1));
-            Assert.assertEquals(Long.valueOf(30), values.get(2));
+            Assertions.assertEquals(Long.valueOf(10), values.get(0));
+            Assertions.assertEquals(Long.valueOf(20), values.get(1));
+            Assertions.assertEquals(Long.valueOf(30), values.get(2));
         }
 
 
@@ -156,7 +157,7 @@ public class StudentTest {
         }
 
         public List<Long> countGroupByAge() {
-            return executeSelect(this.countAllGroupBy, PreparedStatementSetter.EMPTY, rs -> {
+            return executeSelect(this.countAllGroupBy, PreparedStatementSetter.EMPTY, (dialect, rs) -> {
                 List<Long> result = new ArrayList<>();
                 do {
                     result.add(rs.getLong(1));

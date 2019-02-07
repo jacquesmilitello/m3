@@ -1,31 +1,29 @@
 package io.m3.sql.apt;
 
+import io.m3.sql.Dialect;
 import io.m3.sql.annotation.AutoIncrement;
 import io.m3.sql.annotation.Column;
-import io.m3.sql.annotation.PrimaryKey;
-import io.m3.sql.id.Identifier;
-import io.m3.sql.id.NoIdentifierGenerator;
-import io.m3.sql.id.SequenceGenerator;
 import io.m3.sql.jdbc.Mapper;
 import io.m3.sql.jdbc.MapperWithAutoIncrement;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.*;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
-import java.lang.annotation.Annotation;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-import static io.m3.sql.apt.Helper.*;
+import static io.m3.sql.apt.Helper.hasAutoIncrementPK;
+import static io.m3.sql.apt.Helper.nullableType;
+import static io.m3.sql.apt.Helper.preparedStatementGetter;
+import static io.m3.sql.apt.Helper.preparedStatementSetter;
+import static io.m3.sql.apt.Helper.writeGenerated;
+import static io.m3.sql.apt.Helper.writeNewLine;
+import static io.m3.sql.apt.Helper.writePackage;
 
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
@@ -103,6 +101,8 @@ final class MapperGenerator implements Generator {
         writer.write("    public ");
         writer.write(descriptor.element().getSimpleName().toString());
         writer.write(" map(");
+        writer.write(Dialect.class.getName());
+        writer.write(" dialect, ");
         writer.write(ResultSet.class.getName());
         writer.write(" rs) throws ");
         writer.write(SQLException.class.getName());
@@ -129,27 +129,81 @@ final class MapperGenerator implements Generator {
         }
 
         for (PojoPropertyDescriptor ppd : descriptor.properties()) {
-            writer.write("        pojo.");
-            writer.write(ppd.setter().getSimpleName().toString());
-            writer.write("(rs.");
-            writer.write(preparedStatementGetter(ppd.getter().getReturnType().toString()));
-            writer.write("(");
-            writer.write("" + index++);
-            writer.write("));");
-            writeNewLine(writer);
 
-            if (ppd.getter().getAnnotation(Column.class).nullable() && isLinkToPrimitive(ppd.getter().getReturnType().toString())) {
-                writer.write("        if (rs.wasNull()) {");
+            if (Helper.isArray(ppd.getter().getReturnType().toString())) {
+                writer.write("        java.sql.Array array" + index + " = rs."
+                        + preparedStatementGetter(ppd.getter().getReturnType().toString()) + "(" + index + ");");
                 writeNewLine(writer);
-                writer.write("            pojo.");
+                writer.write("        pojo." + ppd.setter().getSimpleName().toString() + "(array" + index
+                        + " == null ? null : (" + ppd.getter().getReturnType().toString() + ")array" + index
+                        + ".getArray());");
+                writeNewLine(writer);
+                index++;
+
+            } else if (ppd.getter().getReturnType().toString().equals("java.sql.Blob")) {
+
+                writer.write("        pojo.");
                 writer.write(ppd.setter().getSimpleName().toString());
-                writer.write("(null);");
+                writer.write("(");
+
+                String method = Helper.isDialectType(ppd.getter().getReturnType().toString());
+                if (method != null) {
+                    writer.write("dialect.");
+                    writer.write(method);
+                    writer.write("(rs,");
+                    writer.write("" + index++);
+                    writer.write("));");
+                } else {
+                    writer.write("new javax.sql.rowset.serial.SerialBlob(rs.");
+                    writer.write(preparedStatementGetter(ppd.getter().getReturnType().toString()));
+                    writer.write("(");
+                    writer.write("" + index++);
+                    writer.write(")));");
+                }
                 writeNewLine(writer);
-                writer.write("        }");
+                if (ppd.getter().getAnnotation(Column.class).nullable()
+                        && isLinkToPrimitive(ppd.getter().getReturnType().toString())) {
+                    writer.write("        if (rs.wasNull()) {");
+                    writeNewLine(writer);
+                    writer.write("            pojo.");
+                    writer.write(ppd.setter().getSimpleName().toString());
+                    writer.write("(null);");
+                    writeNewLine(writer);
+                    writer.write("        }");
+                    writeNewLine(writer);
+                }
+            } else {
+                writer.write("        pojo.");
+                writer.write(ppd.setter().getSimpleName().toString());
+                writer.write("(");
+
+                String method = Helper.isDialectType(ppd.getter().getReturnType().toString());
+                if (method != null) {
+                    writer.write("dialect.");
+                    writer.write(method);
+                    writer.write("(rs,");
+                    writer.write("" + index++);
+                    writer.write("));");
+                } else {
+                    writer.write("rs.");
+                    writer.write(preparedStatementGetter(ppd.getter().getReturnType().toString()));
+                    writer.write("(");
+                    writer.write("" + index++);
+                    writer.write("));");
+                }
                 writeNewLine(writer);
+                if (ppd.getter().getAnnotation(Column.class).nullable()
+                        && isLinkToPrimitive(ppd.getter().getReturnType().toString())) {
+                    writer.write("        if (rs.wasNull()) {");
+                    writeNewLine(writer);
+                    writer.write("            pojo.");
+                    writer.write(ppd.setter().getSimpleName().toString());
+                    writer.write("(null);");
+                    writeNewLine(writer);
+                    writer.write("        }");
+                    writeNewLine(writer);
+                }
             }
-
-
         }
 
         writer.write("        return pojo;");

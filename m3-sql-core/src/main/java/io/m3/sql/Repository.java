@@ -12,6 +12,8 @@ import io.m3.sql.desc.SqlTable;
 import io.m3.sql.expression.AggregateFunction;
 import io.m3.sql.id.SequenceGenerator4Long;
 import io.m3.sql.jdbc.InsertMapper;
+import io.m3.sql.jdbc.InsertMapperException;
+import io.m3.sql.jdbc.InsertMapperWithAutoIncrement;
 import io.m3.sql.jdbc.M3PreparedStatement;
 import io.m3.sql.jdbc.MapperException;
 import io.m3.sql.jdbc.PreparedStatementSetter;
@@ -21,6 +23,7 @@ import io.m3.sql.jdbc.UpdateMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -74,21 +77,15 @@ public abstract class Repository {
     }
 
     protected final <T> T executeSelect(String sql, PreparedStatementSetter pss, ResultSetMapper<T> mapper) {
-
-        try (M3PreparedStatement ps = database.transactionManager().current().select(sql)) {
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("SELECT : [{}]", sql);
-            }
-
+        M3PreparedStatement ps = null;
+        try {
+            ps = database.transactionManager().current().select(sql);
             try {
                 pss.set(ps);
             } catch (SQLException cause) {
                 throw new PreparedStatementSetterException(sql, pss, cause);
             }
-
             Dialect dialect = this.database.dialect();
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapper.map(dialect, rs);
@@ -98,8 +95,9 @@ public abstract class Repository {
             } catch (SQLException cause) {
                 throw new M3SqlException("executeSelect: cannot retrieve or map resultset", cause);
             }
+        } finally {
+            free(ps);
         }
-
     }
 
     protected final <E> void executeBatchInsert(String sql, InsertMapper<E> im, List<E> pojos,
@@ -109,8 +107,9 @@ public abstract class Repository {
             LOGGER.debug("INSERT : [{}], pojo=[{}]", sql, pojos);
         }
 
-        try (M3PreparedStatement ps = database.transactionManager().current().insert(sql)) {
-
+        M3PreparedStatement ps = null;
+        try {
+            ps = database.transactionManager().current().insert(sql);
             for (E po : pojos) {
                 try {
                     im.insert(ps, po);
@@ -142,13 +141,17 @@ public abstract class Repository {
                     throw new M3SqlException("executeBatchInsert: failed to insert one or more records");
                 }
             }
+        } finally {
+            free(ps);
         }
 
     }
 
     protected final <T> Stream<T> stream(String sql, PreparedStatementSetter pss, ResultSetMapper<T> mapper) {
 
-        try ( M3PreparedStatement ps = database.transactionManager().current().select(sql)) {
+        M3PreparedStatement ps = null;
+        try {
+            ps = database.transactionManager().current().select(sql);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("stream : [{}]", sql);
@@ -208,36 +211,33 @@ public abstract class Repository {
                     return 0;
                 }
             }, false);
+        } finally {
+            free(ps);
         }
 
     }
 
     protected final <E> void executeInsert(String sql, InsertMapper<E> im, E pojo) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("INSERT : [{}], pojo=[{}]", sql, pojo);
-
-        }
-        try (M3PreparedStatement ps = database.transactionManager().current().insert(sql)) {
-
+        M3PreparedStatement ps = null;
+        try {
+            ps = database.transactionManager().current().insert(sql);
             try {
                 im.insert(ps, pojo);
             } catch (SQLException cause) {
                 throw new MapperException(sql, im, pojo, cause);
             }
-
             int val;
-
             try {
                 val = ps.executeUpdate();
             } catch (SQLException cause) {
                 throw new M3SqlException("executeInsert: cannot Insert", cause);
             }
-
             if (val != 1) {
                 throw new M3SqlException("executeInsert: should update 1 element but updated [" + val + "]");
             }
+        } finally {
+            free(ps);
         }
-
     }
 
     protected final <E> void executeUpdate(String sql, UpdateMapper<E> um, E pojo) {
@@ -246,7 +246,9 @@ public abstract class Repository {
             LOGGER.debug("UPDATE : [{}], pojo=[{}]", sql, pojo);
         }
 
-        try (M3PreparedStatement ps = database.transactionManager().current().update(sql)) {
+        M3PreparedStatement ps = null;
+        try {
+            ps = database.transactionManager().current().update(sql);
 
             try {
                 um.update(ps, pojo);
@@ -265,7 +267,45 @@ public abstract class Repository {
             if (val != 1) {
                 throw new M3SqlException("executeUpdate: should update 1 element but updated [" + val + "]");
             }
+        } finally {
+            free(ps);
         }
+    }
+
+    protected final <E> void executeInsertAutoIncrement(String sql, InsertMapperWithAutoIncrement<E> im, E pojo) {
+
+        M3PreparedStatement ps = null;
+        try {
+            ps = database.transactionManager().current().insertAutoIncrement(sql);
+
+            try {
+                im.insert(ps, pojo);
+            } catch (SQLException cause) {
+                throw new MapperException(sql, im, pojo, cause);
+            }
+
+            int val;
+            try {
+                val = ps.executeUpdate();
+            } catch (SQLException cause) {
+                throw new M3SqlException("executeInsert: cannot Insert", cause);
+            }
+            if (val != 1) {
+                throw new M3SqlException("executeInsert: should update 1 element but updated [" + val + "]");
+            }
+
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    im.setId(pojo, rs);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        } finally {
+            free(ps);
+        }
+
     }
 
     protected final <E> void executeDelete(String sql, PreparedStatementSetter pss) {
@@ -274,7 +314,9 @@ public abstract class Repository {
             LOGGER.debug("DELETE : [{}], pojo=[{}]", sql);
         }
 
-        try (M3PreparedStatement ps = database.transactionManager().current().delete(sql)) {
+        M3PreparedStatement ps = null;
+        try {
+            ps = database.transactionManager().current().delete(sql);
 
             try {
                 pss.set(ps);
@@ -292,9 +334,16 @@ public abstract class Repository {
             } catch (SQLException cause) {
                 throw new M3SqlException("executeUpdate: cannot executeUpdate", cause);
             }
+        } finally {
+            free(ps);
         }
 
+    }
 
+    private static void free(M3PreparedStatement ps) {
+        if (ps != null) {
+            ps.free();
+        }
     }
 
 }

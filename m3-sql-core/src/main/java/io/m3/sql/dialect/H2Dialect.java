@@ -1,24 +1,22 @@
 package io.m3.sql.dialect;
 
-import io.m3.sql.Dialect;
-import io.m3.sql.desc.SqlColumn;
+import io.m3.sql.Database;
 import io.m3.sql.desc.SqlSequence;
-import io.m3.sql.desc.SqlTable;
 
-final class H2Dialect implements Dialect {
+final class H2Dialect extends AbstractDialect {
+
+    public H2Dialect(Database database) {
+        super(database);
+    }
+
+    @Override
+    protected String aliasSeparator() {
+        return " AS ";
+    }
 
     @Override
     public String nextVal(SqlSequence sequence) {
-        return "SELECT NEXTVAL('"+ sequence.name() + "')";
+        return "SELECT NEXTVAL('" + sequence.name() + "')";
     }
 
-    @Override
-    public void wrap(Appendable appendable, SqlTable table, boolean alias) {
-
-    }
-
-    @Override
-    public void wrap(Appendable appendable, SqlColumn targetColumn, boolean alias) {
-
-    }
 }

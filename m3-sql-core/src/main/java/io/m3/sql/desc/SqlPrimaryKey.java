@@ -9,4 +9,9 @@ public final class SqlPrimaryKey extends SqlColumn {
         super(table, name);
     }
 
+
+    @Override
+    protected SqlColumn newColumFromAlias(SqlTable targetTable) {
+        return new SqlPrimaryKey(targetTable, this.name());
+    }
 }

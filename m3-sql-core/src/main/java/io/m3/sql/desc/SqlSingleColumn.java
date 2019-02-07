@@ -30,4 +30,9 @@ public final class SqlSingleColumn extends SqlColumn {
         return updatable;
     }
 
+    @Override
+    protected SqlColumn newColumFromAlias(SqlTable targetTable) {
+        return new SqlSingleColumn(targetTable, name(), this.nullable, this.insertable, this.nullable);
+    }
+
 }

@@ -2,50 +2,48 @@ package io.m3.sql.apt;
 
 
 import io.m3.sql.Database;
+import io.m3.sql.Dialect;
 import io.m3.sql.apt.ex002.IoM3SqlAptEx002Module;
 import io.m3.sql.apt.ex002.Teacher;
 import io.m3.sql.apt.ex002.TeacherAbstractRepository;
-import io.m3.sql.dialect.H2Dialect;
 import io.m3.sql.impl.DatabaseImpl;
 import io.m3.sql.jdbc.PreparedStatementSetter;
 import io.m3.sql.jdbc.ResultSetMappers;
 import io.m3.sql.tx.Transaction;
+import io.m3.sql.tx.TransactionManagerImpl;
+import org.flywaydb.core.Flyway;
 import org.h2.jdbcx.JdbcConnectionPool;
-import org.h2.tools.RunScript;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.Statement;
 
+import static com.google.common.collect.ImmutableList.of;
 import static io.m3.sql.apt.ex002.Factory.newTeacher;
 import static io.m3.sql.apt.ex002.TeacherDescriptor.ID;
 import static io.m3.sql.apt.ex002.TeacherDescriptor.TABLE;
 import static io.m3.sql.desc.Projections.count;
-import static io.m3.util.ImmutableList.of;
 
-public class TeacherTest {
+class TeacherTest {
 
     private JdbcConnectionPool ds;
     private Database database;
     private TeacherRepository repository;
 
-    @Before
-    public void before() throws Exception {
+    @BeforeEach
+    void before() {
         ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
-        try (Connection connection = ds.getConnection()) {
-            RunScript.execute(connection, new InputStreamReader(TeacherTest.class.getResourceAsStream("/V00000001__ex002.sql")));
-        }
-
-        database = new DatabaseImpl(ds, new H2Dialect(), "", new IoM3SqlAptEx002Module("ex002", ""));
+        database = new DatabaseImpl(ds, Dialect.Name.H2, new TransactionManagerImpl(ds), "", new IoM3SqlAptEx002Module("ex002", ""));
         repository = new TeacherRepository(database);
+        Flyway flyway = Flyway.configure().dataSource(ds).load();
+        flyway.migrate();
     }
 
-    @After
-    public void after() throws Exception {
+    @AfterEach
+    void after() throws Exception {
         try (Connection connection = ds.getConnection()) {
             try (Statement st = connection.createStatement()) {
                 st.execute("shutdown");
@@ -56,11 +54,11 @@ public class TeacherTest {
 
 
     @Test
-    public void test001() throws Exception {
+    void test001() {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Teacher teacher = repository.findById(1);
-            Assert.assertNull(teacher);
+            Assertions.assertNull(teacher);
         }
 
         try (Transaction tx = database.transactionManager().newTransactionReadWrite()) {
@@ -73,14 +71,14 @@ public class TeacherTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Teacher teacher = repository.findById(1);
-            Assert.assertNotNull(teacher);
-            Assert.assertEquals("0032", teacher.getCode());
-            Assert.assertEquals("ABCD", teacher.getPrefixCode());
+            Assertions.assertNotNull(teacher);
+            Assertions.assertEquals("0032", teacher.getCode());
+            Assertions.assertEquals("ABCD", teacher.getPrefixCode());
             System.out.println(teacher);
         }
 
         try (Transaction tx = database.transactionManager().newTransactionReadWrite()) {
-            for (int i = 0 ; i < 8192; i++) {
+            for (int i = 0; i < 8192; i++) {
                 Teacher teacher = newTeacher();
                 teacher.setCode("0032" + i);
                 teacher.setPrefixCode("ABCD" + i);
@@ -90,12 +88,12 @@ public class TeacherTest {
         }
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
-            Assert.assertEquals(8193, repository.countAll());
+            Assertions.assertEquals(8193, repository.countAll());
         }
     }
 
     @Test
-    public void test002() throws Exception {
+    void test002() {
 
         // create
         try (Transaction tx = database.transactionManager().newTransactionReadWrite()) {
@@ -108,9 +106,9 @@ public class TeacherTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Teacher teacher = repository.findById(1);
-            Assert.assertNotNull(teacher);
-            Assert.assertNotNull(teacher.getCreationTimestamp());
-            Assert.assertNull(teacher.getUpdateTimestamp());
+            Assertions.assertNotNull(teacher);
+            Assertions.assertNotNull(teacher.getCreationTimestamp());
+            Assertions.assertNull(teacher.getUpdateTimestamp());
         }
 
         try (Transaction tx = database.transactionManager().newTransactionReadWrite()) {
@@ -122,9 +120,9 @@ public class TeacherTest {
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
             Teacher teacher = repository.findByIdForUpdate(1);
-            Assert.assertNotNull(teacher);
-            Assert.assertNotNull(teacher.getCreationTimestamp());
-            Assert.assertNotNull(teacher.getUpdateTimestamp());
+            Assertions.assertNotNull(teacher);
+            Assertions.assertNotNull(teacher.getCreationTimestamp());
+            Assertions.assertNotNull(teacher.getUpdateTimestamp());
         }
 
     }
@@ -138,7 +136,7 @@ public class TeacherTest {
             countAll = select(of(count(ID))).from(TABLE).build();
         }
 
-        public long countAll() {
+        long countAll() {
             return executeSelect(this.countAll, PreparedStatementSetter.EMPTY, ResultSetMappers.SINGLE_LONG);
         }
 

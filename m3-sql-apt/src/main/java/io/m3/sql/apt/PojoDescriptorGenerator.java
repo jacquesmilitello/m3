@@ -1,14 +1,18 @@
 package io.m3.sql.apt;
 
+import com.google.common.collect.ImmutableList;
 import io.m3.sql.Descriptor;
 import io.m3.sql.annotation.Column;
 import io.m3.sql.annotation.PrimaryKey;
+import io.m3.sql.annotation.Sequence;
 import io.m3.sql.annotation.Table;
 import io.m3.sql.desc.SqlColumn;
 import io.m3.sql.desc.SqlPrimaryKey;
+import io.m3.sql.desc.SqlSequence;
 import io.m3.sql.desc.SqlSingleColumn;
 import io.m3.sql.desc.SqlTable;
-import io.m3.util.ImmutableList;
+import io.m3.sql.id.NoIdentifierGenerator;
+import io.m3.sql.id.SequenceGenerator;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.Diagnostic;
@@ -53,6 +57,7 @@ final class PojoDescriptorGenerator implements Generator {
         writeSingleton(writer, descriptor);
         writeConstructor(writer, descriptor);
         writeTable(writer, descriptor, properties);
+        writeSequence(writer, descriptor);
         writePrimaryKeys(writer, descriptor);
         writeProperties(writer, descriptor);
         writeAllColumns(writer, descriptor);
@@ -110,6 +115,37 @@ final class PojoDescriptorGenerator implements Generator {
         writer.write(generateAlias(properties));
         writer.write("\");");
         writeNewLine(writer);
+    }
+
+    private static void writeSequence(Writer writer, PojoDescriptor descriptor) throws IOException {
+
+        boolean hasSequence = false;
+        for (PojoPropertyDescriptor id : descriptor.ids()) {
+
+            Class<?> identifier = extractPrimaryKeyGenerator(id.getter());
+
+            if (identifier.isAssignableFrom(NoIdentifierGenerator.class)) {
+                continue;
+            }
+
+            if (SequenceGenerator.class.isAssignableFrom(identifier)) {
+                if (hasSequence) {
+                    throw new SqlProcessorException("Failed to generate PojoDescriptor for [" + descriptor + "] -> pojo has more than 1 sequence !");
+                }
+                writeNewLine(writer);
+                writer.write("    // SQL SEQUENCE DESCRIPTOR");
+                writeNewLine(writer);
+                writer.write("    public static final ");
+                writer.write(SqlSequence.class.getName());
+                writer.write(" SEQUENCE = new ");
+                writer.write(SqlSequence.class.getName());
+                writer.write("(\"");
+                writer.write(id.getter().getAnnotation(Sequence.class).value());
+                writer.write("\");");
+                writeNewLine(writer);
+                hasSequence = true;
+            }
+        }
     }
 
     private static void writePrimaryKeys(Writer writer, PojoDescriptor descriptor) throws IOException {

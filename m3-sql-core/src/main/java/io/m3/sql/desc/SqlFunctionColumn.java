@@ -16,4 +16,9 @@ final class SqlFunctionColumn extends SqlColumn {
         return new StringBuilder().append(this.function).append('(').append(name()).append(')').toString();
     }
 
+    @Override
+    protected SqlColumn newColumFromAlias(SqlTable targetTable) {
+        return null;
+    }
+
 }

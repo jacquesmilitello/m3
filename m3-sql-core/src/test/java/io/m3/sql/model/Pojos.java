@@ -16,6 +16,8 @@ import org.mockito.Mockito;
 
 import javax.sql.DataSource;
 
+import static com.google.common.collect.ImmutableList.*;
+
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
@@ -37,16 +39,12 @@ public final class Pojos {
             true, true);
     public static final SqlSingleColumn FOLDER_CREATED_BY = new SqlSingleColumn(FOLDER_TABLE, "created_by", false,
             false, false);
-    public static final com.google.common.collect.ImmutableList<SqlColumn> FOLDER_ALL = com.google.common.collect.ImmutableList
-            .of(FOLDER_ID, FOLDER_PARENT_FK, FOLDER_PATH, FOLDER_FULL_PATH, FOLDER_CREATED_AT, FOLDER_CREATED_BY);
-    public static final com.google.common.collect.ImmutableList<SqlSingleColumn> FOLDER_COLUMNS = com.google.common.collect.ImmutableList
-            .of(FOLDER_PARENT_FK, FOLDER_PATH, FOLDER_FULL_PATH, FOLDER_CREATED_AT, FOLDER_CREATED_BY);
+    public static final com.google.common.collect.ImmutableList<SqlColumn> FOLDER_ALL = of(FOLDER_ID, FOLDER_PARENT_FK, FOLDER_PATH, FOLDER_FULL_PATH, FOLDER_CREATED_AT, FOLDER_CREATED_BY);
+    public static final com.google.common.collect.ImmutableList<SqlSingleColumn> FOLDER_COLUMNS = of(FOLDER_PARENT_FK, FOLDER_PATH, FOLDER_FULL_PATH, FOLDER_CREATED_AT, FOLDER_CREATED_BY);
 
-    public static final com.google.common.collect.ImmutableList<SqlPrimaryKey> FOLDER_IDS = com.google.common.collect.ImmutableList
-            .of(FOLDER_ID);
+    public static final com.google.common.collect.ImmutableList<SqlPrimaryKey> FOLDER_IDS = of(FOLDER_ID);
 
-    public static final com.google.common.collect.ImmutableList<SqlPrimaryKey> FOLDER_IDS_MULTIPLE = com.google.common.collect.ImmutableList
-            .of(FOLDER_ID, FOLDER_ID2);
+    public static final com.google.common.collect.ImmutableList<SqlPrimaryKey> FOLDER_IDS_MULTIPLE = of(FOLDER_ID, FOLDER_ID2);
     // WORK
     public static final SqlTable WORK_TABLE = new SqlTable("work", "b");
     public static final SqlPrimaryKey WORK_ID = new SqlPrimaryKey(WORK_TABLE, "id");
@@ -83,7 +81,7 @@ public final class Pojos {
 
         @Override
         public ImmutableList<SqlPrimaryKey> ids() {
-            return ImmutableList.of(WORK_ID);
+            return of(WORK_ID);
         }
 
         @Override
@@ -113,7 +111,7 @@ public final class Pojos {
     public static final Module MODULE_STORAGE = new Module("storage", DESCRIPTOR_FOLDER, DESCRIPTOR_WORK, DESCRIPTOR_SEMANTIC) {
     };
 
-    public static final Database DATABASE = new DatabaseImpl(Mockito.mock(DataSource.class), H2,
+    public static final Database DATABASE = new DatabaseImpl(Mockito.mock(DataSource.class), Dialect.Name.H2,
             Mockito.mock(TransactionManager.class), "", MODULE_STORAGE);
 
     public static Database mockDatabase(DataSource dataSource) {

@@ -1,6 +1,7 @@
 package io.m3.sql.id;
 
 import io.m3.sql.Database;
+import io.m3.sql.desc.SqlSequence;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,7 +12,7 @@ import java.sql.SQLException;
 public final class SequenceGenerator4Integer extends SequenceGenerator<Integer> {
 
 
-    public SequenceGenerator4Integer(Database database, String sequence) {
+    public SequenceGenerator4Integer(Database database, SqlSequence sequence) {
         super(database, sequence);
     }
 

@@ -1,5 +1,6 @@
 package io.m3.sql;
 
+import io.m3.sql.model.Pojos;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -1,11 +1,14 @@
 package io.m3.sql.bench;
 
 import io.m3.sql.Database;
-import io.m3.sql.Module;
-import io.m3.sql.bench.pojo.*;
-import io.m3.sql.dialect.H2Dialect;
+import io.m3.sql.Dialect;
+import io.m3.sql.bench.pojo.Factory;
+import io.m3.sql.bench.pojo.Person;
+import io.m3.sql.bench.pojo.PersonAbstractRepository;
+import io.m3.sql.bench.pojo.PersonJPA;
 import io.m3.sql.impl.DatabaseImpl;
 import io.m3.sql.tx.Transaction;
+import io.m3.sql.tx.TransactionManagerImpl;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.tools.RunScript;
 import org.hibernate.Session;
@@ -13,8 +16,15 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
-import org.junit.Test;
-import org.openjdk.jmh.annotations.*;
+import org.junit.jupiter.api.Test;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
@@ -52,14 +62,14 @@ public class InsertBench {
             e.printStackTrace();
         }
 
-        StandardServiceRegistryBuilder serviceRegistryBuilder =  new StandardServiceRegistryBuilder();
+        StandardServiceRegistryBuilder serviceRegistryBuilder = new StandardServiceRegistryBuilder();
         serviceRegistryBuilder.applySetting(Environment.DATASOURCE, ds);
 
         SESSION_FACTORY = new Configuration()
                 .addAnnotatedClass(PersonJPA.class)
                 .buildSessionFactory(serviceRegistryBuilder.build());
 
-        DATABASE = new DatabaseImpl(ds, new H2Dialect(), "", new io.m3.sql.bench.pojo.IoM3SqlBenchPojoModule("bench",""));
+        DATABASE = new DatabaseImpl(ds, Dialect.Name.H2, new TransactionManagerImpl(ds), "", new io.m3.sql.bench.pojo.IoM3SqlBenchPojoModule("bench", ""));
 
         PERSON_ABSTRACT_REPOSITORY = new PersonAbstractRepository(DATABASE) {
         };
@@ -67,7 +77,7 @@ public class InsertBench {
 
     @Test
     public void dotest() throws Exception {
-        Options opt = new OptionsBuilder().include(InsertBench.class.getSimpleName()).forks(1).jvmArgs("-server","-XX:+AggressiveOpts","-XX:+UseFastAccessorMethods","-XX:+UseG1GC")
+        Options opt = new OptionsBuilder().include(InsertBench.class.getSimpleName()).forks(1).jvmArgs("-server", "-XX:+AggressiveOpts", "-XX:+UseFastAccessorMethods", "-XX:+UseG1GC")
                 .verbosity(VerboseMode.EXTRA)
                 .shouldDoGC(true)
                 .build();
@@ -88,7 +98,7 @@ public class InsertBench {
 
         reset();
 
-        for (int i = 0 ; i < MAX ; i++) {
+        for (int i = 0; i < MAX; i++) {
             try (Session session = SESSION_FACTORY.openSession()) {
                 PersonJPA person = new PersonJPA();
                 person.setFirstName("first_name");
@@ -111,7 +121,7 @@ public class InsertBench {
 
             session.beginTransaction();
 
-            for (int i = 0 ; i < MAX ; i++) {
+            for (int i = 0; i < MAX; i++) {
                 PersonJPA person = new PersonJPA();
                 person.setFirstName("first_name");
                 person.setLastName("first_name");
@@ -130,7 +140,7 @@ public class InsertBench {
 
         reset();
 
-        for (int i = 0 ; i < MAX ; i++) {
+        for (int i = 0; i < MAX; i++) {
             try (Transaction tx = DATABASE.transactionManager().newTransactionReadWrite()) {
                 Person person = Factory.newPerson();
                 person.setFirstName("first_name");
@@ -148,35 +158,35 @@ public class InsertBench {
         reset();
 
 
-            try (Transaction tx = DATABASE.transactionManager().newTransactionReadWrite()) {
-                for (int i = 0 ; i < MAX ; i++) {
+        try (Transaction tx = DATABASE.transactionManager().newTransactionReadWrite()) {
+            for (int i = 0; i < MAX; i++) {
 
                 Person person = Factory.newPerson();
                 person.setFirstName("first_name");
                 person.setLastName("first_name");
                 person.setId(i);
                 PERSON_ABSTRACT_REPOSITORY.insert(person);
-                }
-                tx.commit();
             }
+            tx.commit();
+        }
 
     }
 
-    @Benchmark
+    //@Benchmark
     public void m3OneTxBatch() {
         reset();
 
         try (Transaction tx = DATABASE.transactionManager().newTransactionReadWrite()) {
-            for (int i = 0 ; i < MAX ; i++) {
+            for (int i = 0; i < MAX; i++) {
 
                 Person person = Factory.newPerson();
                 person.setFirstName("first_name");
                 person.setLastName("first_name");
                 person.setId(i);
-                PERSON_ABSTRACT_REPOSITORY.batch(person);
+                //PERSON_ABSTRACT_REPOSITORY.batch(person);
             }
 
-            PERSON_ABSTRACT_REPOSITORY.executeBatch();
+            //PERSON_ABSTRACT_REPOSITORY.executeBatch();
 
             tx.commit();
         }

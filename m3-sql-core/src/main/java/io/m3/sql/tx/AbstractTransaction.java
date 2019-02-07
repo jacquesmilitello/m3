@@ -13,16 +13,11 @@ import java.util.Map;
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
+/*
 public abstract class AbstractTransaction implements Transaction {
 
-    /**
-     * SLF4J Logger.
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTransaction.class);
 
-    /**
-     * Holder a SQL connection.
-     */
     protected final Connection connection;
 
     private final TransactionManagerImpl transactionManager;
@@ -35,7 +30,6 @@ public abstract class AbstractTransaction implements Transaction {
         this.connection = connection;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void close() {
 
@@ -190,3 +184,4 @@ public abstract class AbstractTransaction implements Transaction {
         }
     }
 }
+*/

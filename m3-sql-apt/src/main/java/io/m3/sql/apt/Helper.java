@@ -252,4 +252,25 @@ final class Helper {
         }
         return false;
     }
+
+    public static boolean isArray(String type) {
+        // not for byte[]
+        return "long[]".equals(type) || "java.lang.Long[]".equals(type) ||
+               "int[]".equals(type) || "java.lang.Integer[]".equals(type) ||
+               "short[]".equals(type) || "java.lang.Short[]".equals(type);
+    }
+
+
+    public static String isDialectType(String type) {
+
+        if ("io.m3.sql.jdbc.SqlXml".equals(type)) {
+            return "fromJdbcSqlXml";
+        }
+
+        if ("io.m3.sql.jdbc.SqlJson".equals(type)) {
+            return "fromJdbcSqlJson";
+        }
+
+        return null;
+    }
 }

@@ -13,7 +13,7 @@ install: mvn clean install
 # use latest java version available instead of travis default
 addons:
   sonarcloud:
-    organization: "m3"
+    organization: "jacquesmilitello-github"
     token:
       secure: $SONAR_TOKEN
 script:

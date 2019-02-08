@@ -62,6 +62,10 @@ public class TransactionManagerImpl implements TransactionManager {
         return transaction;
     }
 
+     void clear() {
+         this.transactions.remove();
+    }
+
     public static interface TransactionDefinition {
 
     }
@@ -74,6 +78,7 @@ public class TransactionManagerImpl implements TransactionManager {
         if (tx != null) {
             // get TX inside another TX
             //return new SqlTransactionStatus(tx, definition.isReadOnly(), false);
+
         }
         final Connection conn;
         try {
@@ -84,7 +89,7 @@ public class TransactionManagerImpl implements TransactionManager {
             //throw new CannotCreateTransactionException("Error during Datasource.getConnection", cause);
             return null;
         }
-        tx = new TransactionImpl(conn);
+        tx = new TransactionImpl(this, conn);
        /* if (definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT) {
             try {
                 conn.setTransactionIsolation(definition.getIsolationLevel());

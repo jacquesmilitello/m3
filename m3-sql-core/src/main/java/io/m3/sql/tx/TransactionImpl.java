@@ -11,7 +11,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
@@ -24,8 +26,13 @@ final class TransactionImpl implements Transaction {
 
     private final List<Runnable> hooks;
 
-    TransactionImpl(Connection connection) {
+    private final TransactionManagerImpl transactionManager;
+
+    private final Map<String, PreparedStatement> insert = new HashMap<>();
+
+    TransactionImpl(TransactionManagerImpl transactionManager, Connection connection) {
         super();
+        this.transactionManager = transactionManager;
         this.connection = connection;
         this.hooks = new ArrayList<>();
     }
@@ -41,6 +48,8 @@ final class TransactionImpl implements Transaction {
             this.connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            transactionManager.clear();
         }
     }
 
@@ -52,6 +61,26 @@ final class TransactionImpl implements Transaction {
     @Override
     public void close() {
 
+        try {
+            this.connection.close();
+
+            close(this.insert);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    private void close(Map<String, PreparedStatement> map) {
+        map.forEach((sql, ps) -> {
+            try {
+                ps.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
@@ -76,11 +105,19 @@ final class TransactionImpl implements Transaction {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("INSERT : [{}]", sql);
         }
-        try {
-            return new M3PreparedStatementImpl(this.connection.prepareStatement(sql));
-        } catch (SQLException cause) {
-           throw new M3SqlException("Failed to prepare statement for SQL [" + sql + "]", cause);
+
+        PreparedStatement ps = insert.get(sql);
+
+        if (ps == null) {
+            try {
+                ps = this.connection.prepareStatement(sql);
+                this.insert.put(sql, ps);
+            } catch (SQLException cause) {
+                throw new M3SqlException("Failed to prepare statement for SQL [" + sql + "]", cause);
+            }
         }
+
+        return new M3PreparedStatementImpl(ps);
     }
 
     @Override
@@ -124,7 +161,7 @@ final class TransactionImpl implements Transaction {
 
     @Override
     public void addHook(Runnable runnable) {
-
+        this.hooks.add(runnable);
     }
 
 	/*

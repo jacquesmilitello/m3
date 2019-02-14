@@ -3,7 +3,6 @@ package io.m3.sql.impl;
 import com.google.common.collect.ImmutableMap;
 import io.m3.sql.Database;
 import io.m3.sql.Dialect;
-import io.m3.sql.M3SqlException;
 import io.m3.sql.Module;
 import io.m3.sql.desc.SqlTable;
 import io.m3.sql.dialect.Dialects;

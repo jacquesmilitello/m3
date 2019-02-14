@@ -1,6 +1,8 @@
 package io.m3.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -14,25 +16,22 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.SQLException;
-import java.util.Optional;
 
 import javax.sql.DataSource;
 
 import io.m3.sql.builder.InsertBuilder;
 import io.m3.sql.builder.SelectBuilder;
 import io.m3.sql.builder.UpdateBuilder;
-import io.m3.sql.jdbc.M3PreparedStatement;
 import io.m3.sql.jdbc.Mapper;
 import io.m3.sql.jdbc.MapperException;
 import io.m3.sql.jdbc.PreparedStatementSetter;
-import io.m3.sql.jdbc.PreparedStatementSetterException;
+import io.m3.sql.jdbc.M3PreparedStatementSetterException;
 import io.m3.sql.model.PojoI;
 import io.m3.sql.model.Pojos;
 import io.m3.sql.tx.Transaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 
@@ -50,10 +49,10 @@ class RepositoryTest {
 	private Mapper<PojoI> map;
 	private PojoI pojo;
 
-	//@BeforeEach
+	@BeforeEach
 	void beforeEach() throws SQLException {
 		datasource = mock(DataSource.class);
-		conn = Mockito.mock(Connection.class);
+		conn = mock(Connection.class);
 		
 		when(datasource.getConnection()).thenReturn(conn);
 		
@@ -73,7 +72,7 @@ class RepositoryTest {
 		reset(conn);
 	}
 
-	//@Test
+	@Test
 	void testSelect() {
 		Database db = Pojos.DATABASE;
 		DefaultRepository repo = new DefaultRepository(db);
@@ -82,14 +81,13 @@ class RepositoryTest {
 		assertEquals("SELECT id,parent_fk,path,full_path,created_at,created_by FROM folder", builder.build());
 	}
 
-	//@Test
+	@Test
 	void testExecuteSelect() throws SQLException {
 		when(ps.executeQuery()).thenReturn(rs);
-		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(ps);
+		when(conn.prepareStatement(anyString(),  anyInt())).thenReturn(ps);
 		when(rs.next()).thenReturn(true); // has result
 		when(map.map(Mockito.any(), Mockito.any())).thenReturn(mock(PojoI.class));
-		when(conn.createStatement()).thenReturn(mock(Statement.class));
-		
+
 		DefaultRepository repo = new DefaultRepository(db);
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
@@ -98,79 +96,82 @@ class RepositoryTest {
 			Assertions.assertNotNull(p);
 			tx.rollback();
 		}
-		verify(pss).set(ps);
 		verify(ps).executeQuery();
 		verify(rs).next();
 		verify(map).map(db.dialect(), rs);
 		verify(conn).close();
 	}
 
-	//@Test
+	@Test
 	void testExecuteSelectFailsOnPrepareStatement() throws SQLException {
-		doThrow(SQLException.class).when(conn).prepareStatement(anyString(), anyInt());
-		when(conn.createStatement()).thenReturn(mock(Statement.class));
-		
+		when(conn.prepareStatement(anyString(),  anyInt())).thenThrow(new SQLException());
+
 		DefaultRepository repo = new DefaultRepository(db);
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			//Assertions.assertThrows(PrepareStatementException.class, () -> repo.executeSelect(builder.build(), pss, map));
+			M3RepositoryException ex = assertThrows(M3RepositoryException.class, () -> repo.executeSelect(builder.build(), pss, map));
+			assertEquals(M3RepositoryException.Type.PREPARED_STATEMENT, ex.getType());
+			tx.rollback();
 		}
+		verify(conn).close();
 	}
 
-	//@Test
+	@Test
 	void testExecuteSelectFailsOnFillPrepareStatement() throws SQLException {
 		doThrow(SQLException.class).when(pss).set(Mockito.any());
 		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(ps);
-		when(conn.createStatement()).thenReturn(mock(Statement.class));
-		
+
 		DefaultRepository repo = new DefaultRepository(db);
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			Assertions.assertThrows(PreparedStatementSetterException.class, () -> repo.executeSelect(builder.build(), pss, map));
+			M3RepositoryException ex = assertThrows(M3RepositoryException.class, () -> repo.executeSelect(builder.build(), pss, map));
+			assertEquals(M3RepositoryException.Type.PREPARED_STATEMENT_SETTER, ex.getType());
 		}
+		verify(conn).close();
+		verify(conn).rollback();
 	}
 
-	//@Test
+	@Test
 	void testExecuteSelectFailsOnExecuteQuery() throws SQLException {
 		when(rs.next()).thenReturn(true); // has result
 		doThrow(SQLException.class).when(ps).executeQuery();
 		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(ps);
 		when(map.map(Mockito.any(), Mockito.any())).thenReturn(mock(PojoI.class));
-		when(conn.createStatement()).thenReturn(mock(Statement.class));
-		
+
 		DefaultRepository repo = new DefaultRepository(db);
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			Assertions.assertThrows(M3SqlException.class, () -> repo.executeSelect(builder.build(), pss, map));
+			assertThrows(M3SqlException.class, () -> repo.executeSelect(builder.build(), pss, map));
+			tx.rollback();
 		}
+		verify(conn).close();
+		verify(conn).rollback();
 	}
 
-	//@Test
+	@Test
 	void testExecuteSelectFailsOnResultsetNext() throws SQLException {
 		when(ps.executeQuery()).thenReturn(rs);
 		doThrow(SQLException.class).when(rs).next();
 		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(ps);
 		when(map.map(Mockito.any(), Mockito.any())).thenReturn(mock(PojoI.class));
-		when(conn.createStatement()).thenReturn(mock(Statement.class));
-		
+
 		DefaultRepository repo = new DefaultRepository(db);
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			Assertions.assertThrows(M3SqlException.class, () -> repo.executeSelect(builder.build(), pss, map));
+			assertThrows(M3SqlException.class, () -> repo.executeSelect(builder.build(), pss, map));
 		}
 	}
 
-	//@Test
+	@Test
 	void testExecuteSelectReturnsNoResult() throws SQLException {
 		when(ps.executeQuery()).thenReturn(rs);
 		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(ps);
 		when(rs.next()).thenReturn(false);
-		when(conn.createStatement()).thenReturn(mock(Statement.class));
-		
+
 		DefaultRepository repo = new DefaultRepository(db);
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
@@ -179,7 +180,6 @@ class RepositoryTest {
 			Assertions.assertNull(p);
 			tx.rollback();
 		}
-		verify(pss).set(ps);
 		verify(ps).executeQuery();
 		verify(rs).next();
 		verify(conn).close();
@@ -198,7 +198,8 @@ class RepositoryTest {
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
 			repo.executeInsert(builder.build(), map, pojo);
-			tx.rollback();
+			tx.commit();
+
 		}
 		verify(ps).executeUpdate();
 		verify(map).insert(ps, pojo);
@@ -229,7 +230,7 @@ class RepositoryTest {
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			Assertions.assertThrows(MapperException.class, () -> repo.executeInsert(builder.build(), map, pojo));
+			assertThrows(MapperException.class, () -> repo.executeInsert(builder.build(), map, pojo));
 		}
 	}
 
@@ -244,7 +245,7 @@ class RepositoryTest {
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			Assertions.assertThrows(M3SqlException.class, () -> repo.executeInsert(builder.build(), map, pojo));
+			assertThrows(M3SqlException.class, () -> repo.executeInsert(builder.build(), map, pojo));
 		}
 	}
 
@@ -259,7 +260,7 @@ class RepositoryTest {
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			Assertions.assertThrows(RuntimeException.class, () -> repo.executeInsert(builder.build(), map, pojo));
+			assertThrows(RuntimeException.class, () -> repo.executeInsert(builder.build(), map, pojo));
 		}
 	}
 
@@ -309,7 +310,7 @@ class RepositoryTest {
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			Assertions.assertThrows(MapperException.class, () -> repo.executeUpdate(builder.build(), map, pojo));
+			assertThrows(MapperException.class, () -> repo.executeUpdate(builder.build(), map, pojo));
 		}
 	}
 
@@ -324,7 +325,7 @@ class RepositoryTest {
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			Assertions.assertThrows(M3SqlException.class, () -> repo.executeUpdate(builder.build(), map, pojo));
+			assertThrows(M3SqlException.class, () -> repo.executeUpdate(builder.build(), map, pojo));
 		}
 	}
 
@@ -338,7 +339,7 @@ class RepositoryTest {
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			Assertions.assertThrows(RuntimeException.class, () -> repo.executeUpdate(builder.build(), map, pojo));
+			assertThrows(RuntimeException.class, () -> repo.executeUpdate(builder.build(), map, pojo));
 		}
 	}
 

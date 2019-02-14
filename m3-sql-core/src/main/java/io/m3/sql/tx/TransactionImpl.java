@@ -1,5 +1,6 @@
 package io.m3.sql.tx;
 
+import io.m3.sql.M3RepositoryException;
 import io.m3.sql.M3SqlException;
 import io.m3.sql.jdbc.M3PreparedStatement;
 import org.slf4j.Logger;
@@ -28,13 +29,16 @@ final class TransactionImpl implements Transaction {
 
     private final TransactionManagerImpl transactionManager;
 
-    private final Map<String, PreparedStatement> insert = new HashMap<>();
+    private boolean active;
+
+    private final Map<String, PreparedStatement> insertUpdate = new HashMap<>();
+    private final Map<String, PreparedStatement> select = new HashMap<>();
 
     TransactionImpl(TransactionManagerImpl transactionManager, Connection connection) {
-        super();
         this.transactionManager = transactionManager;
         this.connection = connection;
         this.hooks = new ArrayList<>();
+        this.active = true;
     }
 
     @Override
@@ -44,30 +48,56 @@ final class TransactionImpl implements Transaction {
 
     @Override
     public void commit() {
+
+       checkActive();
+
         try {
             this.connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
+            this.active = false;
             transactionManager.clear();
+        }
+    }
+
+    private void checkActive() {
+        if (!this.active) {
+
         }
     }
 
     @Override
     public void rollback() {
-
+        try {
+            this.connection.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            this.active = false;
+            transactionManager.clear();
+        }
     }
 
     @Override
     public void close() {
 
+        if (active) {
+            LOGGER.info("call close() on a active -> rollback");
+            rollback();
+        }
+
         try {
-            this.connection.close();
-
-            close(this.insert);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+            if (!this.connection.isClosed()) {
+                this.connection.close();
+            } else {
+                LOGGER.warn("connection is already closed()");
+            }
+        } catch (SQLException cause) {
+            LOGGER.warn("Failed to close the connection", cause);
+        } finally {
+            close(this.select);
+            close(this.insertUpdate);
         }
 
 
@@ -93,11 +123,7 @@ final class TransactionImpl implements Transaction {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("select({})", sql);
         }
-        try {
-            return new M3PreparedStatementImpl(this.connection.prepareStatement(sql));
-        } catch (SQLException cause) {
-            throw new M3SqlException("Failed to prepare statement for SQL [" + sql + "]", cause);
-        }
+        return new M3PreparedStatementImpl(preparedStatement(sql, this.select));
     }
 
     @Override
@@ -105,19 +131,7 @@ final class TransactionImpl implements Transaction {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("INSERT : [{}]", sql);
         }
-
-        PreparedStatement ps = insert.get(sql);
-
-        if (ps == null) {
-            try {
-                ps = this.connection.prepareStatement(sql);
-                this.insert.put(sql, ps);
-            } catch (SQLException cause) {
-                throw new M3SqlException("Failed to prepare statement for SQL [" + sql + "]", cause);
-            }
-        }
-
-        return new M3PreparedStatementImpl(ps);
+        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
     }
 
     @Override
@@ -137,21 +151,23 @@ final class TransactionImpl implements Transaction {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("update : [{}]", sql);
         }
-        try {
-            return new M3PreparedStatementImpl(this.connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS));
-        } catch (SQLException cause) {
-            throw new M3SqlException("Failed to prepare statement for SQL [" + sql + "]", cause);
-        }
+        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
     }
 
     @Override
     public M3PreparedStatement delete(String sql) {
-        return null;
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("delete : [{}]", sql);
+        }
+        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
     }
 
     @Override
     public M3PreparedStatement batch(String sql) {
-        return null;
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("batch : [{}]", sql);
+        }
+        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
     }
 
     @Override
@@ -164,6 +180,21 @@ final class TransactionImpl implements Transaction {
         this.hooks.add(runnable);
     }
 
+    private void shutdown() {
+
+        for (Runnable runnable : hooks) {
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Execute hook [{}]", runnable);
+            }
+            try {
+                runnable.run();
+            } catch (Exception cause) {
+                LOGGER.warn("Failed to run Hook [{}] -> skip", runnable);
+            }
+        }
+
+    }
 	/*
 	public void close() {
 		if (LOGGER.isTraceEnabled()) {
@@ -265,4 +296,16 @@ final class TransactionImpl implements Transaction {
 	}
 */
 
+    private PreparedStatement preparedStatement(String sql, Map<String, PreparedStatement> cache) {
+        PreparedStatement ps = cache.get(sql);
+        if (ps == null) {
+            try {
+                ps = this.connection.prepareStatement(sql, Statement.NO_GENERATED_KEYS);
+                cache.put(sql, ps);
+            } catch (SQLException cause) {
+                throw new M3RepositoryException(M3RepositoryException.Type.PREPARED_STATEMENT,"Failed to prepare statement for SQL [" + sql + "]", cause);
+            }
+        }
+        return ps;
+    }
 }

@@ -7,9 +7,9 @@ import java.sql.SQLException;
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
-public final class PreparedStatementSetterException extends M3SqlException{
+public final class M3PreparedStatementSetterException extends M3SqlException{
 
-    public PreparedStatementSetterException(String sql, PreparedStatementSetter pss, SQLException cause) {
+    public M3PreparedStatementSetterException(String sql, PreparedStatementSetter pss, SQLException cause) {
         super(buildMessage(sql, pss, cause), cause);
     }
 

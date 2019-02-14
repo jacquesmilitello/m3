@@ -7,6 +7,9 @@ import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.util.Iterator;
 
+/**
+ * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
+ */
 public interface Transaction extends AutoCloseable {
 
     boolean isReadOnly();

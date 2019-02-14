@@ -28,6 +28,7 @@ import io.m3.sql.jdbc.PreparedStatementSetter;
 import io.m3.sql.jdbc.M3PreparedStatementSetterException;
 import io.m3.sql.model.PojoI;
 import io.m3.sql.model.Pojos;
+import io.m3.sql.tx.M3TransactionException;
 import io.m3.sql.tx.Transaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -187,105 +188,105 @@ class RepositoryTest {
 
 	// INSERT
 
-	//@Test
+	@Test
 	void testExecuteInsert() throws SQLException {
 		
 		when(ps.executeUpdate()).thenReturn(1);// success
-		when(conn.prepareStatement(anyString())).thenReturn(ps);
+		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(ps);
 		
 		DefaultRepository repo = new DefaultRepository(db);
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
-		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
+		try (Transaction tx = db.transactionManager().newTransactionReadWrite()) {
 			repo.executeInsert(builder.build(), map, pojo);
 			tx.commit();
 
 		}
 		verify(ps).executeUpdate();
-		verify(map).insert(ps, pojo);
 		verify(conn).close();
 	}
 
-	//@Test
+	@Test
 	void testExecuteInsertFailsOnPrepareStatement() throws SQLException {
 		doThrow(SQLException.class).when(conn).prepareStatement(anyString(), anyInt());
-		when(conn.createStatement()).thenReturn(mock(Statement.class));
-		
+
 		DefaultRepository repo = new DefaultRepository(db);
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
-		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			//Assertions.assertThrows(PrepareStatementException.class, () -> repo.executeInsert(builder.build(), map, pojo));
+		try (Transaction tx = db.transactionManager().newTransactionReadWrite()) {
+			Assertions.assertThrows(M3RepositoryException.class, () -> repo.executeInsert(builder.build(), map, pojo));
+			tx.rollback();
 		}
+
+		verify(conn).close();
 	}
 
-	//@Test
+	@Test
 	void testExecuteInsertFailsOnFillPrepareStatement() throws SQLException {
 		
 		doThrow(SQLException.class).when(map).insert(ps, pojo);
 		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(ps);
-		when(conn.createStatement()).thenReturn(mock(Statement.class));
-		
-		DefaultRepository repo = new DefaultRepository(db);
-		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
-		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
-		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			assertThrows(MapperException.class, () -> repo.executeInsert(builder.build(), map, pojo));
-		}
-	}
 
-	//@Test
-	void testExecuteInsertFailsOnExecuteUpdate() throws SQLException {
-		
-		doThrow(SQLException.class).when(ps).executeUpdate();
-		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(ps);
-		when(conn.createStatement()).thenReturn(mock(Statement.class));
-		
 		DefaultRepository repo = new DefaultRepository(db);
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
 			assertThrows(M3SqlException.class, () -> repo.executeInsert(builder.build(), map, pojo));
+			tx.rollback();
 		}
+
 	}
 
-	//@Test
-	void testExecuteInsertFailsOnWrongNumberUpdated() throws SQLException {
+	@Test
+	void testExecuteInsertFailsOnExecuteUpdate() throws SQLException {
 		
-		when(ps.executeUpdate()).thenReturn(0);// success
+		doThrow(SQLException.class).when(ps).executeUpdate();
 		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(ps);
-		when(conn.createStatement()).thenReturn(mock(Statement.class));
 
 		DefaultRepository repo = new DefaultRepository(db);
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			assertThrows(RuntimeException.class, () -> repo.executeInsert(builder.build(), map, pojo));
+			assertThrows(M3SqlException.class, () -> repo.executeInsert(builder.build(), map, pojo));
+			tx.rollback();
+		}
+	}
+
+	@Test
+	void testExecuteInsertFailsOnWrongNumberUpdated() throws SQLException {
+		
+		when(ps.executeUpdate()).thenReturn(0);// success
+		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(ps);
+
+		DefaultRepository repo = new DefaultRepository(db);
+		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
+		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
+		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
+			assertThrows(M3SqlException.class, () -> repo.executeInsert(builder.build(), map, pojo));
+			tx.rollback();
 		}
 	}
 
 	// UPDATE
 
-	//@Test
+	@Test
 	void testExecuteUpdate() throws SQLException {
 		
 		when(ps.executeUpdate()).thenReturn(1);// success
 		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(ps);
-		when(conn.createStatement()).thenReturn(mock(Statement.class));
-		
+
 		DefaultRepository repo = new DefaultRepository(db);
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
-		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
+		try (Transaction tx = db.transactionManager().newTransactionReadWrite()) {
 			repo.executeUpdate(builder.build(), map, pojo);
 			tx.rollback();
 		}
 		verify(ps).executeUpdate();
-		verify(map).update(ps, pojo);
 		verify(conn).close();
 	}
 
-	//@Test
+	@Test
 	void testExecuteUpdateFailsOnPrepareStatement() throws SQLException {
 		
 		doThrow(SQLException.class).when(conn).prepareStatement(anyString(), anyInt());
@@ -295,7 +296,7 @@ class RepositoryTest {
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			//Assertions.assertThrows(PrepareStatementException.class, () -> repo.executeUpdate(builder.build(), map, pojo));
+			Assertions.assertThrows(M3TransactionException.class, () -> repo.executeUpdate(builder.build(), map, pojo));
 		}
 	}
 

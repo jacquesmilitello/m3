@@ -1,69 +1,133 @@
 package io.m3.sql.tx;
 
+import io.m3.sql.M3SqlException;
+import io.m3.sql.jdbc.M3PreparedStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
-/*final class TransactionReadWrite extends AbstractTransaction {
+final class TransactionReadWrite extends AbstractTransaction {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(TransactionReadWrite.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(TransactionReadWrite.class);
 
-	private boolean active = true;
+    private final Map<String, PreparedStatement> insertUpdate = new HashMap<>();
 
-	TransactionReadWrite(TransactionManagerImpl transactionManager, Connection connection) throws SQLException {
-		super(transactionManager, connection);
-		connection.setAutoCommit(false);
-		connection.setReadOnly(false);
-	}
+    TransactionReadWrite(TransactionManagerImpl transactionManager, Connection connection) {
+        super(transactionManager, connection);
+    }
 
-	@Override
-	public boolean isReadOnly() {
-		return false;
-	}
+    @Override
+    public boolean isReadOnly() {
+        return false;
+    }
 
-	@Override
-	public void commit() {
-		active = false;
-		try {
-			this.connection.commit();
-		} catch (SQLException cause) {
-			throw new TransactionException("failed to commit", cause);
-		}
-	}
+    @Override
+    public void commit() {
 
-	@Override
-	public void rollback() {
-		active = false;
-		try {
-			this.connection.rollback();
-		} catch (SQLException cause) {
-			throw new TransactionException("r", cause);
-		}
-	}
+        checkActive();
 
-	@Override
-	public Timestamp timestamp() {
-		throw new UnsupportedOperationException();
-	}
+        try {
+            this.connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            //  this.active = false;
+            //  transactionManager.clear();
+        }
+    }
 
-	@Override
-	public void close() {
+    private void checkActive() {
+        /*if (!this.active) {
 
-		try {
-			if (active) {
-				LOGGER.warn("close() an active ReadWrite Transaction (no commit() or rollback() called)");
-			}
+        }
+        */
+    }
 
-		} finally {
-			super.close();
-		}
-	}
+
+
+
+
+
+    @Override
+    public Timestamp timestamp() {
+        return null;
+    }
+
+    @Override
+    public M3PreparedStatement insert(String sql) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("INSERT : [{}]", sql);
+        }
+        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
+    }
+
+    @Override
+    public M3PreparedStatement insertAutoIncrement(String sql) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("INSERT AutoIncrement : [{}]", sql);
+        }
+        try {
+            return new M3PreparedStatementImpl(this.connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS));
+        } catch (SQLException cause) {
+            throw new M3SqlException("Failed to prepare statement for SQL [" + sql + "]", cause);
+        }
+    }
+
+    @Override
+    public M3PreparedStatement update(String sql) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("update : [{}]", sql);
+        }
+        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
+    }
+
+    @Override
+    public M3PreparedStatement delete(String sql) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("delete : [{}]", sql);
+        }
+        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
+    }
+
+    @Override
+    public M3PreparedStatement batch(String sql) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("batch : [{}]", sql);
+        }
+        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
+    }
+
+    @Override
+    public Iterable<PreparedStatement> getBatchs() {
+        return null;
+    }
+
+
+
+    private void shutdown() {
+
+       /* for (Runnable runnable : hooks) {
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Execute hook [{}]", runnable);
+            }
+            try {
+                runnable.run();
+            } catch (Exception cause) {
+                LOGGER.warn("Failed to run Hook [{}] -> skip", runnable);
+            }
+        }*/
+
+    }
 
 }
-*/

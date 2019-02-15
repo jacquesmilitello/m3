@@ -79,7 +79,7 @@ public abstract class Repository {
     protected final <T> T executeSelect(String sql, PreparedStatementSetter pss, ResultSetMapper<T> mapper) {
         M3PreparedStatement ps = null;
         try {
-            ps = database.transactionManager().current().select(sql);
+            ps = database.transactionManager().current().read(sql);
             try {
                 pss.set(ps);
             } catch (SQLException cause) {
@@ -108,7 +108,7 @@ public abstract class Repository {
 
         M3PreparedStatement ps = null;
         try {
-            ps = database.transactionManager().current().insert(sql);
+            ps = database.transactionManager().current().write(sql);
             for (E po : pojos) {
                 try {
                     im.insert(ps, po);
@@ -150,7 +150,7 @@ public abstract class Repository {
 
         M3PreparedStatement ps = null;
         try {
-            ps = database.transactionManager().current().select(sql);
+            ps = database.transactionManager().current().write(sql);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("stream : [{}]", sql);
@@ -219,7 +219,7 @@ public abstract class Repository {
     protected final <E> void executeInsert(String sql, InsertMapper<E> im, E pojo) {
         M3PreparedStatement ps = null;
         try {
-            ps = database.transactionManager().current().insert(sql);
+            ps = database.transactionManager().current().write(sql);
             try {
                 im.insert(ps, pojo);
             } catch (SQLException cause) {
@@ -247,7 +247,7 @@ public abstract class Repository {
 
         M3PreparedStatement ps = null;
         try {
-            ps = database.transactionManager().current().update(sql);
+            ps = database.transactionManager().current().write(sql);
 
             try {
                 um.update(ps, pojo);
@@ -275,7 +275,7 @@ public abstract class Repository {
 
         M3PreparedStatement ps = null;
         try {
-            ps = database.transactionManager().current().insertAutoIncrement(sql);
+            ps = database.transactionManager().current().write(sql);
 
             try {
                 im.insert(ps, pojo);
@@ -315,7 +315,7 @@ public abstract class Repository {
 
         M3PreparedStatement ps = null;
         try {
-            ps = database.transactionManager().current().delete(sql);
+            ps = database.transactionManager().current().write(sql);
 
             try {
                 pss.set(ps);

@@ -1,6 +1,5 @@
 package io.m3.sql.desc;
 
-import com.google.common.hash.HashCode;
 import io.m3.util.ToStringBuilder;
 
 import java.util.Objects;
@@ -31,8 +30,7 @@ public final class SqlTable {
     }
 
     /**
-
- * {@inheritDoc}
+     * {@inheritDoc}
      */
     @Override
     public String toString() {
@@ -51,7 +49,7 @@ public final class SqlTable {
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof  SqlTable)) {
+        if (o == null || !(o instanceof SqlTable)) {
             return false;
         }
 
@@ -65,6 +63,6 @@ public final class SqlTable {
      */
     @Override
     public int hashCode() {
-       return this.name.hashCode();
+        return this.name.hashCode();
     }
 }

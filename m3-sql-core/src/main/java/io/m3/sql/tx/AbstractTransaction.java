@@ -42,7 +42,7 @@ abstract class AbstractTransaction implements Transaction {
     public final void close() {
 
         if (active) {
-            LOGGER.info("call close() on a active -> rollback");
+            LOGGER.info("call close() on a active transaction -> rollback");
             rollback();
         }
 
@@ -57,12 +57,10 @@ abstract class AbstractTransaction implements Transaction {
         } finally {
             close(this.select);
         }
-
-
     }
 
     @Override
-    public M3PreparedStatement select(String sql) {
+    public M3PreparedStatement read(String sql) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("select({})", sql);
         }
@@ -120,4 +118,15 @@ abstract class AbstractTransaction implements Transaction {
         }
         return ps;
     }
+
+    protected final void checkActive() {
+        if (!this.active) {
+            throw new M3TransactionException(M3TransactionException.Type.NOT_ACTIVE, "");
+        }
+    }
+
+    protected final void deactivate() {
+        this.active = false;
+    }
+
 }

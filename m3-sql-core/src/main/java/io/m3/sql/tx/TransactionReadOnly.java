@@ -3,8 +3,6 @@ package io.m3.sql.tx;
 import io.m3.sql.jdbc.M3PreparedStatement;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 
 /**
@@ -23,43 +21,25 @@ final class TransactionReadOnly extends AbstractTransaction {
 
     @Override
     public void commit() {
-        throw new RuntimeException("ReadOnly transaction -> commit not allowed.");
+        throw new M3TransactionException(M3TransactionException.Type.READ_ONLY, "ReadOnly transaction -> commit not allowed.");
     }
 
     @Override
     public Timestamp timestamp() {
-        throw new M3TransactionException("no timestamp -> READ ONLY Transaction");
+        return null;
     }
 
     @Override
-    public M3PreparedStatement insert(String sql) {
-        throw new M3TransactionException("READ ONLY Transaction : insert(" + sql + ")");
+    public M3PreparedStatement write(String sql) {
+        throw new M3TransactionException(M3TransactionException.Type.READ_ONLY, "READ ONLY Transaction : write(" + sql + ")");
     }
 
     @Override
-    public M3PreparedStatement insertAutoIncrement(String sql) {
-        throw new M3TransactionException("READ ONLY Transaction : insertAutoIncrement(" + sql + ")");
+    public Transaction innerTransaction(TransactionDefinition definition) {
+        if (!definition.isReadOnly()) {
+            throw new M3TransactionException(M3TransactionException.Type.READ_ONLY, "READ ONLY Transaction ..");
+        }
+        return new TransactionNested(this);
     }
-
-    @Override
-    public M3PreparedStatement update(String sql) {
-        throw new M3TransactionException("READ ONLY Transaction : update(" + sql + ")");
-    }
-
-    @Override
-    public M3PreparedStatement delete(String sql) {
-        throw new M3TransactionException("READ ONLY Transaction : delete(" + sql + ")");
-    }
-
-    @Override
-    public M3PreparedStatement batch(String sql) {
-        throw new M3TransactionException("READ ONLY Transaction : batch(" + sql + ")");
-    }
-
-    @Override
-    public Iterable<PreparedStatement> getBatchs() {
-        throw new M3TransactionException("READ ONLY Transaction : getBatchs()");
-    }
-
 
 }

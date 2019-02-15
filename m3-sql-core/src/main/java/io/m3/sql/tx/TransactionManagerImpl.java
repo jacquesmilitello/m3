@@ -8,6 +8,8 @@ import java.lang.invoke.MethodHandles;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import static io.m3.sql.tx.M3TransactionException.Type.CONNECTION_ISOLATION;
+
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
@@ -22,16 +24,16 @@ public class TransactionManagerImpl implements TransactionManager {
 
     private final DataSource dataSource;
 
-    // private final int defaultIsolationLevel;
+    private final int defaultIsolationLevel;
 
     private boolean enforceReadOnly = false;
 
     public TransactionManagerImpl(DataSource dataSource) {
         this.dataSource = dataSource;
         try (Connection conn = dataSource.getConnection()) {
-            // this.defaultIsolationLevel = conn.getTransactionIsolation();
+             this.defaultIsolationLevel = conn.getTransactionIsolation();
         } catch (SQLException cause) {
-            //throw new TransactionSystemException("Cannot retreive default TransactionIsolationLevel", cause);
+             throw new M3TransactionException(CONNECTION_ISOLATION,"Cannot retreive default TransactionIsolationLevel", cause);
         }
     }
 
@@ -67,11 +69,12 @@ public class TransactionManagerImpl implements TransactionManager {
             LOGGER.trace("getTransaction({})", definition);
         }
         Transaction tx = transactions.get();
-        if (tx != null) {
-            // get TX inside another TX
-            //return new SqlTransactionStatus(tx, definition.isReadOnly(), false);
 
+        if (tx != null) {
+            //get TX inside another TX
+            return tx.innerTransaction(definition);
         }
+
         final Connection conn;
         try {
             conn = dataSource.getConnection();

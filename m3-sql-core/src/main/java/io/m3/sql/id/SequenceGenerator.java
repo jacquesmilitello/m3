@@ -24,7 +24,7 @@ public abstract class SequenceGenerator<T> implements Identifier<T> {
     }
 
     public final T next() {
-        PreparedStatement ps = database.transactionManager().current().select(this.sequence);
+        PreparedStatement ps = database.transactionManager().current().read(this.sequence);
 
         try (ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {

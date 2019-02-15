@@ -1,6 +1,5 @@
 package io.m3.sql.tx;
 
-import io.m3.sql.M3SqlException;
 import io.m3.sql.jdbc.M3PreparedStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,25 +36,13 @@ final class TransactionReadWrite extends AbstractTransaction {
 
         try {
             this.connection.commit();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException cause) {
+            throw new M3TransactionException(M3TransactionException.Type.COMMIT,"failed to commit transaction", cause);
         } finally {
-            //  this.active = false;
-            //  transactionManager.clear();
+            deactivate();
+            getTransactionManager().clear();
         }
     }
-
-    private void checkActive() {
-        /*if (!this.active) {
-
-        }
-        */
-    }
-
-
-
-
-
 
     @Override
     public Timestamp timestamp() {
@@ -64,14 +50,14 @@ final class TransactionReadWrite extends AbstractTransaction {
     }
 
     @Override
-    public M3PreparedStatement insert(String sql) {
+    public M3PreparedStatement write(String sql) {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("INSERT : [{}]", sql);
+            LOGGER.debug("WRITE : [{}]", sql);
         }
         return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
     }
 
-    @Override
+  /*  @Override
     public M3PreparedStatement insertAutoIncrement(String sql) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("INSERT AutoIncrement : [{}]", sql);
@@ -81,37 +67,16 @@ final class TransactionReadWrite extends AbstractTransaction {
         } catch (SQLException cause) {
             throw new M3SqlException("Failed to prepare statement for SQL [" + sql + "]", cause);
         }
-    }
+    }*/
+
 
     @Override
-    public M3PreparedStatement update(String sql) {
+    public Transaction innerTransaction(TransactionDefinition definition) {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("update : [{}]", sql);
+            LOGGER.debug("innerTransaction : [{}]", definition);
         }
-        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
+        return new TransactionNested(this);
     }
-
-    @Override
-    public M3PreparedStatement delete(String sql) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("delete : [{}]", sql);
-        }
-        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
-    }
-
-    @Override
-    public M3PreparedStatement batch(String sql) {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("batch : [{}]", sql);
-        }
-        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
-    }
-
-    @Override
-    public Iterable<PreparedStatement> getBatchs() {
-        return null;
-    }
-
 
 
     private void shutdown() {

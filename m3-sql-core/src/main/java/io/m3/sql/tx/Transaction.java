@@ -22,20 +22,11 @@ public interface Transaction extends AutoCloseable {
 
     Timestamp timestamp();
 
-    M3PreparedStatement select(String sql);
+    M3PreparedStatement read(String sql);
 
-    M3PreparedStatement insert(String sql);
-
-    M3PreparedStatement insertAutoIncrement(String sql);
-
-    M3PreparedStatement update(String sql);
-
-    M3PreparedStatement delete(String sql);
-
-    M3PreparedStatement batch(String sql);
-
-    Iterable<PreparedStatement> getBatchs();
+    M3PreparedStatement write(String sql);
 
     void addHook(Runnable runnable);
 
+    Transaction innerTransaction(TransactionDefinition definition);
 }

@@ -310,7 +310,7 @@ public abstract class Repository {
     protected final <E> void executeDelete(String sql, PreparedStatementSetter pss) {
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("DELETE : [{}], pojo=[{}]", sql);
+            LOGGER.debug("DELETE : [{}]", sql);
         }
 
         M3PreparedStatement ps = null;

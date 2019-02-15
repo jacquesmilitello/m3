@@ -1,5 +1,6 @@
 package io.m3.sql.desc;
 
+import com.google.common.hash.HashCode;
 import io.m3.util.ToStringBuilder;
 
 import java.util.Objects;
@@ -40,6 +41,7 @@ public final class SqlTable {
                 .append("alias", alias)
                 .toString();
     }
+
     /**
      * {@inheritDoc}
      */
@@ -58,4 +60,11 @@ public final class SqlTable {
         return Objects.equals(name(), that.name());
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+       return this.name.hashCode();
+    }
 }

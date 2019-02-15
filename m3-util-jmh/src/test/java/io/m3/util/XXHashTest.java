@@ -1,16 +1,17 @@
 package io.m3.util;
 
-import org.junit.Assert;
-import org.junit.Test;
 import io.m3.util.hash.Hashing;
 
 import net.openhft.hashing.LongHashFunction;
+import org.junit.jupiter.api.Test;
 
-public class XXHashTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class XXHashTest {
 
 	
 	@Test
-	public void test() {
+	void test() {
 		
 		//compare(12356, "Hello world !");
 		//compare(12356, "Hello world !d");
@@ -19,8 +20,8 @@ public class XXHashTest {
 		
 	}
 	
-	public void compare(long seed, String value) {
-		Assert.assertEquals(LongHashFunction.xx(seed).hashChars(value), Hashing.xx(seed, value));
+	void compare(long seed, String value) {
+		assertEquals(LongHashFunction.xx(seed).hashChars(value), Hashing.xx(seed, value));
 	}
 	
 }

@@ -11,11 +11,14 @@
     <artifactId>m3-util-jmh</artifactId>
     <name>m3-util-jmh</name>
 
-    <properties>
-        <org.openjdk.jmh.version>1.18</org.openjdk.jmh.version>
-    </properties>
-
     <dependencies>
+
+        <dependency>
+            <groupId>io.m3</groupId>
+            <artifactId>m3-test</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.javolution</groupId>
@@ -46,14 +49,6 @@
             <artifactId>jmh-generator-annprocess</artifactId>
             <version>${org.openjdk.jmh.version}</version>
         </dependency>
-
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
 
     </dependencies>
 

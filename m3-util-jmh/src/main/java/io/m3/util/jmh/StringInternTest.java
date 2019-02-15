@@ -1,6 +1,6 @@
 package io.m3.util.jmh;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
@@ -84,7 +84,7 @@ public class StringInternTest {
     }
 
     @Test
-    public void dotest() throws Exception {
+    void dotest() throws Exception {
         // @formatter:off
         Options opt = new OptionsBuilder().include(StringInternTest.class.getSimpleName()).forks(2).jvmArgs("-server", "-XX:+AggressiveOpts", "-XX:+UseFastAccessorMethods", "-XX:+UseG1GC")
                 .verbosity(VerboseMode.EXTRA)

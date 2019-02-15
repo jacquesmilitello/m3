@@ -1,12 +1,7 @@
 package io.m3.util.jmh;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.collect.ImmutableList;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Measurement;
@@ -18,6 +13,11 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 @BenchmarkMode({Mode.Throughput, Mode.AverageTime})
@@ -38,7 +38,7 @@ public class ImmutableListTest {
         Integer[] integer = new Integer[MAX];
         String[] strings = new String[MAX];
 
-        for (int i = 0 ; i < MAX ; i++) {
+        for (int i = 0; i < MAX; i++) {
             ARRAY_LIST_INTEGER.add(i);
             ARRAY_LIST_STRINGS.add("HELLO WOLRD" + i);
             integer[i] = i;
@@ -51,7 +51,7 @@ public class ImmutableListTest {
     @Benchmark
     public void testArrayListInteger() {
 
-        for (int i = 0 ; i < MAX ; i++) {
+        for (int i = 0; i < MAX; i++) {
             ARRAY_LIST_INTEGER.get(i);
         }
 
@@ -59,7 +59,7 @@ public class ImmutableListTest {
 
     @Benchmark
     public void testArrayListString() {
-        for (int i = 0 ; i < MAX ; i++) {
+        for (int i = 0; i < MAX; i++) {
             ARRAY_LIST_STRINGS.get(i);
         }
     }
@@ -74,7 +74,7 @@ public class ImmutableListTest {
 
     @Benchmark
     public void testImmultableistInteger() {
-        for (int i = 0 ; i < MAX ; i++) {
+        for (int i = 0; i < MAX; i++) {
             IMMUTABLE_INTEGER.get(i);
         }
 
@@ -83,7 +83,7 @@ public class ImmutableListTest {
     @Benchmark
     public void testImmultableistString() {
 
-        for (int i = 0 ; i < MAX ; i++) {
+        for (int i = 0; i < MAX; i++) {
             IMMUTABLE_STRING.get(i);
         }
 
@@ -98,7 +98,7 @@ public class ImmutableListTest {
     }
 
     @Test
-    public void dotest() throws Exception {
+    void dotest() throws Exception {
         // @formatter:off
         Options opt = new OptionsBuilder()
                 .include(ImmutableListTest.class.getSimpleName())

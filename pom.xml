@@ -23,6 +23,8 @@
 		<com.h2database.version>1.4.197</com.h2database.version>
 		<org.mockito.version>2.23.4</org.mockito.version>
 
+		<org.openjdk.jmh.version>1.21</org.openjdk.jmh.version>
+
 	</properties>
 
 	<dependencyManagement>

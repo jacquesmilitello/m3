@@ -2,9 +2,9 @@ package io.m3.util.jmh;
 
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
 import io.m3.util.hash.Hashing;
 import io.m3.util.unsafe.UnsafeString;
+import org.junit.jupiter.api.Test;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Measurement;
@@ -54,7 +54,7 @@ public class XXHashBench {
 	
 
 	@Test
-	public void dotest() throws Exception {
+	void dotest() throws Exception {
 		// @formatter:off
 		Options opt = new OptionsBuilder().include(XXHashBench.class.getSimpleName()).forks(1).jvmArgs("-server","-XX:+AggressiveOpts","-XX:+UseFastAccessorMethods","-XX:+UseG1GC")
 				.verbosity(VerboseMode.EXTRA)

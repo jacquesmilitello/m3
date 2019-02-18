@@ -12,7 +12,7 @@ public final class M3TransactionException extends M3SqlException {
 
 
     public enum Type {
-        READ_ONLY, CONNECTION_ISOLATION, NOT_ACTIVE, COMMIT
+        READ_ONLY, CONNECTION_ISOLATION, NOT_ACTIVE, COMMIT , ROLLBACK
     }
 
     private final Type type;

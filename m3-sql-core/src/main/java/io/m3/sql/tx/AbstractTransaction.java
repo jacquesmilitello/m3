@@ -71,8 +71,8 @@ abstract class AbstractTransaction implements Transaction {
     public final void rollback() {
         try {
             this.connection.rollback();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException cause) {
+           throw new M3TransactionException(M3TransactionException.Type.ROLLBACK, "", cause);
         } finally {
             this.active = false;
             transactionManager.clear();

@@ -227,8 +227,8 @@ final class Helper {
 
                         try {
                             clazz = Class.forName(type.toString());
-                        } catch (ClassNotFoundException cause) {
-                            throw new M3AptGeneratorException("Failed execute Class.forName(" + type.toString() + ")", cause);
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
                         }
                     }
                 }

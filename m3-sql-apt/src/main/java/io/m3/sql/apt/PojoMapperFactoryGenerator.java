@@ -22,14 +22,13 @@ final class PojoMapperFactoryGenerator implements Generator {
         Map<String, List<PojoDescriptor>> packages = analyse(env, descriptors);
         for (Map.Entry<String, List<PojoDescriptor>> entry : packages.entrySet()) {
             try {
+                env.getMessager().printMessage(Diagnostic.Kind.NOTE, "generate Pojo Mapper for " + entry.getKey());
                 create(env, entry.getKey(), entry.getValue());
-            } catch (IOException cause) {
+            } catch (Exception cause) {
                 env.getMessager().printMessage(Diagnostic.Kind.ERROR, "PojoMapperFactoryGenerator -> IOException for [" + entry + "] -> [" + cause.getMessage() + "]");
             }
         }
     }
-
-
 
     private void create(ProcessingEnvironment env, String pack, List<PojoDescriptor> descriptors) throws IOException {
 

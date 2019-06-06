@@ -19,7 +19,7 @@ public final class HashReader4String extends HashReader {
 
 	@Override
 	public long length() {
-		return val.length * 2L;
+		return val.length * 2;
 	}
 
 	@Override

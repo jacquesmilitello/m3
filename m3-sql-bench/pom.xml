@@ -38,7 +38,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>5.4.1.Final</version>
+            <version>5.4.3.Final</version>
         </dependency>
 
         <dependency>
@@ -68,41 +68,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
-
-            <plugin>
-                <groupId>org.bsc.maven</groupId>
-                <artifactId>maven-processor-plugin</artifactId>
-                <version>3.3.3</version>
-                <executions>
-                    <execution>
-                        <id>process</id>
-                        <goals>
-                            <goal>process</goal>
-                        </goals>
-                        <phase>generate-sources</phase>
-                    </execution>
-
-                </executions>
-                <configuration>
-                    <processors>
-                        <processor>io.m3.sql.apt.SqlProcessor</processor>
-                        <processor>org.openjdk.jmh.generators.BenchmarkProcessor</processor>
-                    </processors>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.openjdk.jmh</groupId>
-                        <artifactId>jmh-generator-annprocess</artifactId>
-                        <version>${org.openjdk.jmh.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>io.m3</groupId>
-                        <artifactId>m3-sql-apt</artifactId>
-                        <version>${project.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-
         </plugins>
     </build>
 

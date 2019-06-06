@@ -23,6 +23,8 @@ public interface Dialect {
 
     void wrap(Appendable appendable, SqlColumn targetColumn, boolean alias);
 
+    String range(int offset, int limit);
+
     /*
     SqlXml fromJdbcSqlXml(ResultSet rs, int index) throws SQLException;
 

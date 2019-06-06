@@ -60,7 +60,7 @@ final class M3PreparedStatementImpl implements M3PreparedStatement {
 
     @Override
     public int getMaxRows() throws SQLException {
-        return this.getMaxRows();
+        return this.ps.getMaxRows();
     }
 
     @Override

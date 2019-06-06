@@ -12,9 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.collect.ImmutableList.copyOf;
-
-
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
@@ -46,6 +43,7 @@ public final class SelectBuilder extends AbstractBuilder {
     private ImmutableList<SqlColumn> groupBy;
     private boolean forUpdate;
     private int limit = -1;
+    private int offset = -1;
 
     public SelectBuilder(Database database, ImmutableList<SqlColumn> columns) {
         super(database);
@@ -79,9 +77,16 @@ public final class SelectBuilder extends AbstractBuilder {
             builder.append(" FOR UPDATE");
         }
 
-        if (limit != -1) {
+        if (limit != -1 && offset != -1) {
+            builder.append(' ').append(this.database().dialect().range(offset, limit));
+        } else if (limit != -1) {
             builder.append(" LIMIT ").append(this.limit);
+        } else {
+
         }
+
+
+
 
         String sql = builder.toString();
         if (LOGGER.isDebugEnabled()) {
@@ -97,6 +102,11 @@ public final class SelectBuilder extends AbstractBuilder {
 
     public SelectBuilder from(SqlTable... tables) {
         this.from = ImmutableList.copyOf(tables);
+        return this;
+    }
+
+    public SelectBuilder offset(int offset) {
+        this.offset = offset;
         return this;
     }
 
@@ -125,12 +135,9 @@ public final class SelectBuilder extends AbstractBuilder {
     /**
      * Used when : select * from [_from_ JOIN_targetTable_ ON ]
      *
-     * @param targetTable
-     *            is the first table to be joined
-     * @param targetColumn
-     *            is the _targetColumn_ used for the 'ON'
-     * @param column
-     *            is the _from_ column used for the 'ON'
+     * @param targetTable  is the first table to be joined
+     * @param targetColumn is the _targetColumn_ used for the 'ON'
+     * @param column       is the _from_ column used for the 'ON'
      * @return
      */
     public SelectBuilder leftJoin(SqlTable targetTable, SqlColumn targetColumn, SqlColumn column) {
@@ -154,14 +161,10 @@ public final class SelectBuilder extends AbstractBuilder {
     /**
      * Used when : select * from _from_ on xxx JOIN _targetTable_ ON _otherColumn_=_targetColumn_
      *
-     * @param targetTable
-     *            is the first table to be joined
-     * @param targetColumn
-     *            is the _targetColumn_ used for the 'ON'
-     * @param otherFrom
-     *            is the first table to be joined
-     * @param otherColumn
-     *            is the _from_ column used for the 'ON'
+     * @param targetTable  is the first table to be joined
+     * @param targetColumn is the _targetColumn_ used for the 'ON'
+     * @param otherFrom    is the first table to be joined
+     * @param otherColumn  is the _from_ column used for the 'ON'
      * @return
      */
     public SelectBuilder leftJoin(SqlTable targetTable, SqlColumn targetColumn, SqlTable otherFrom,
@@ -186,7 +189,7 @@ public final class SelectBuilder extends AbstractBuilder {
         requireNonNull(targetColumn, LEFT_JOIN + TARGET_COLUMN_NN);
         requireNonNull(column, LEFT_JOIN + COLUMN_NN);
         requireNonNull(expression, LEFT_JOIN + EXPRESSION_NN);
-        this.joins.add(new JoinClause(this.database(), JoinType.LEFT, targetTable, targetColumn, column.table(),column, expression));
+        this.joins.add(new JoinClause(this.database(), JoinType.LEFT, targetTable, targetColumn, column.table(), column, expression));
         return this;
     }
 

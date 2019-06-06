@@ -19,4 +19,9 @@ final class H2Dialect extends AbstractDialect {
         return "SELECT NEXTVAL('" + sequence.name() + "')";
     }
 
+    @Override
+    public String range(int offset, int limit) {
+        return "LIMIT " + limit + " OFFSET " + offset;
+    }
+
 }

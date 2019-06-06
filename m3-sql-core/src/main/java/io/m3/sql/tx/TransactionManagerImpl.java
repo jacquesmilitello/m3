@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import static io.m3.sql.tx.M3TransactionException.Type.CONNECTION_ISOLATION;
+import static io.m3.sql.tx.M3TransactionException.Type.CREATE;
+import static io.m3.sql.tx.M3TransactionException.Type.NO;
 
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
@@ -31,9 +33,9 @@ public class TransactionManagerImpl implements TransactionManager {
     public TransactionManagerImpl(DataSource dataSource) {
         this.dataSource = dataSource;
         try (Connection conn = dataSource.getConnection()) {
-             this.defaultIsolationLevel = conn.getTransactionIsolation();
+            this.defaultIsolationLevel = conn.getTransactionIsolation();
         } catch (SQLException cause) {
-             throw new M3TransactionException(CONNECTION_ISOLATION,"Cannot retreive default TransactionIsolationLevel", cause);
+            throw new M3TransactionException(CONNECTION_ISOLATION, "Cannot retreive default TransactionIsolationLevel", cause);
         }
     }
 
@@ -55,10 +57,16 @@ public class TransactionManagerImpl implements TransactionManager {
     public Transaction current() {
         Transaction transaction = this.transactions.get();
         if (transaction == null) {
-            // throw new NoTransactionException("...");
+            throw new M3TransactionException(NO, "...");
         }
         return transaction;
     }
+
+    @Override
+    public boolean hasCurrent() {
+        return this.transactions.get() != null;
+    }
+
 
     void clear() {
         this.transactions.remove();
@@ -81,8 +89,7 @@ public class TransactionManagerImpl implements TransactionManager {
             //prepareTransactionalConnection(conn, definition);
             conn.setAutoCommit(false);
         } catch (SQLException cause) {
-            //throw new CannotCreateTransactionException("Error during Datasource.getConnection", cause);
-            return null;
+            throw new M3TransactionException(CREATE, "Error during Datasource.getConnection", cause);
         }
 
         if (definition.isReadOnly()) {

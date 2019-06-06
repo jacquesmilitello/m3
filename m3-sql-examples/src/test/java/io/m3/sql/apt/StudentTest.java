@@ -45,7 +45,7 @@ class StudentTest {
     }
 
     @AfterEach
-    public void after() throws Exception {
+    void after() throws Exception {
         try (Connection connection = ds.getConnection()) {
             try (Statement st = connection.createStatement()) {
                 st.execute("shutdown");
@@ -56,7 +56,7 @@ class StudentTest {
 
 
     @Test
-    public void test001() throws Exception {
+    void test001() throws Exception {
 
         StudentAbstractRepository repository = new StudentAbstractRepository(database) {
         };
@@ -99,7 +99,7 @@ class StudentTest {
     }
 
     @Test
-    public void test002() throws Exception {
+    void test002() throws Exception {
 
         StudentRepository repository = new StudentRepository(database);
 

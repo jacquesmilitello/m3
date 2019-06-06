@@ -5,9 +5,12 @@ import io.m3.sql.Database;
 import io.m3.sql.Repository;
 import io.m3.sql.annotation.AutoIncrement;
 import io.m3.sql.annotation.CreateTimestamp;
-import io.m3.sql.annotation.Sequence;
 import io.m3.sql.annotation.Table;
 import io.m3.sql.annotation.UpdateTimestamp;
+import io.m3.sql.domain.Page;
+import io.m3.sql.domain.Pageable;
+import io.m3.sql.expression.AggregateFunctions;
+import io.m3.sql.expression.Expression;
 import io.m3.sql.expression.Expressions;
 import io.m3.sql.id.NoIdentifierGenerator;
 import io.m3.sql.id.SequenceGenerator;
@@ -28,6 +31,7 @@ import static io.m3.sql.apt.Helper.toUpperCase;
 import static io.m3.sql.apt.Helper.writeGenerated;
 import static io.m3.sql.apt.Helper.writeNewLine;
 import static io.m3.sql.apt.Helper.writePackage;
+import static io.m3.sql.expression.Expressions.eq;
 
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
@@ -271,6 +275,7 @@ final class RepositoryGenerator implements Generator {
         generateMethodUpdate(writer, descriptor);
        // generateMethodBatch(writer, descriptor);
         generateMethodFindByBusinessKey(writer, descriptor);
+        generateMethodPage(writer, descriptor);
     }
 
 
@@ -515,6 +520,42 @@ final class RepositoryGenerator implements Generator {
         writeNewLine(writer);
         writer.write("    }");
         writeNewLine(writer);
+    }
+
+
+    private static void generateMethodPage(Writer writer, PojoDescriptor descriptor) throws IOException {
+        Table table = descriptor.element().getAnnotation(Table.class);
+        if (!table.pageable()) {
+            return;
+        }
+
+        writeNewLine(writer);
+        writer.write("    public final ");
+        writer.write(Page.class.getName());
+        writer.write("<");
+        writer.write(descriptor.element().toString());
+        writer.write(">");
+        writer.write(" page(");
+        writer.write(Pageable.class.getName());
+        writer.write(" pageable) {");
+        writeNewLine(writer);
+        writer.write("        // create sql for count");
+        writeNewLine(writer);
+
+        writer.write("        String sqlCount = select("+AggregateFunctions.class.getName() + ".count(ID)).from(TABLE).build();");
+        writeNewLine(writer);
+        writer.write("        // create sql for select");
+        writeNewLine(writer);
+        writer.write("        String sqlPage = select(ALL).from(TABLE).offset(pageable.getPageNumber()* pageable.getPageSize()).limit(pageable.getPageSize()).build();");
+        writeNewLine(writer);
+        writer.write("        return executeSelectPage(sqlCount, sqlPage");
+        writer.write(", Mappers.");
+        writer.write(toUpperCase(descriptor.element().getSimpleName().toString()));
+        writer.write(", pageable);");
+        writeNewLine(writer);
+        writer.write("    }");
+        writeNewLine(writer);
+
     }
 
 }

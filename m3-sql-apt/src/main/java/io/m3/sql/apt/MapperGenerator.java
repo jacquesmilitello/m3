@@ -37,7 +37,7 @@ final class MapperGenerator implements Generator {
         descriptors.forEach(t -> {
             try {
                 generate(processingEnvironment, t);
-            } catch (IOException cause) {
+            } catch (Exception cause) {
                 processingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "MapperGenerator -> IOException for [" + t + "] -> [" + cause.getMessage() + "]");
             }
         });

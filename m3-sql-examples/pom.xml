@@ -21,12 +21,6 @@
 
         <dependency>
             <groupId>io.m3</groupId>
-            <artifactId>m3-sql-apt</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.m3</groupId>
             <artifactId>m3-test</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -42,16 +36,23 @@
             <version>5.2.4</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.m3</groupId>
+            <artifactId>m3-sql-apt</artifactId>
+            <version>${project.version}</version>
+            <optional>true</optional>
+        </dependency>
+
     </dependencies>
 
-    <build>
+    <!--build>
 
         <plugins>
 
             <plugin>
                 <groupId>org.bsc.maven</groupId>
                 <artifactId>maven-processor-plugin</artifactId>
-                <version>3.3.3</version>
+                <version>3.3.3</version>H
                 <executions>
                     <execution>
                         <id>process</id>
@@ -77,5 +78,6 @@
 
         </plugins>
 
-    </build>
+    </build-->
+
 </project>

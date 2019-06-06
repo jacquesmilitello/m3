@@ -9,6 +9,9 @@ import io.m3.sql.desc.SqlColumn;
 import io.m3.sql.desc.SqlPrimaryKey;
 import io.m3.sql.desc.SqlSingleColumn;
 import io.m3.sql.desc.SqlTable;
+import io.m3.sql.domain.Page;
+import io.m3.sql.domain.PageImpl;
+import io.m3.sql.domain.Pageable;
 import io.m3.sql.expression.AggregateFunction;
 import io.m3.sql.id.SequenceGenerator4Long;
 import io.m3.sql.jdbc.InsertMapper;
@@ -18,6 +21,7 @@ import io.m3.sql.jdbc.MapperException;
 import io.m3.sql.jdbc.PreparedStatementSetter;
 import io.m3.sql.jdbc.M3PreparedStatementSetterException;
 import io.m3.sql.jdbc.ResultSetMapper;
+import io.m3.sql.jdbc.ResultSetMappers;
 import io.m3.sql.jdbc.UpdateMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -150,7 +154,7 @@ public abstract class Repository {
 
         M3PreparedStatement ps = null;
         try {
-            ps = database.transactionManager().current().write(sql);
+            ps = database.transactionManager().current().read(sql);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("stream : [{}]", sql);
@@ -307,7 +311,7 @@ public abstract class Repository {
 
     }
 
-    protected final <E> void executeDelete(String sql, PreparedStatementSetter pss) {
+    protected final void executeDelete(String sql, PreparedStatementSetter pss) {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("DELETE : [{}]", sql);
@@ -338,6 +342,27 @@ public abstract class Repository {
         }
 
     }
+
+    public final <T> Page<T> executeSelectPage(String countSql, String sql, ResultSetMapper<T> mapper, Pageable pageable) {
+
+        Long count = executeSelect(countSql, ps -> {
+
+        }, ResultSetMappers.SINGLE_LONG);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("find count=[{}]", count);
+        }
+
+        if (count == null || count == 0) {
+            return Page.empty();
+        }
+
+        return new PageImpl<>(stream(sql, ps -> {
+
+        }, mapper), count, pageable);
+
+    }
+
 
     private static void free(M3PreparedStatement ps) {
         if (ps != null) {

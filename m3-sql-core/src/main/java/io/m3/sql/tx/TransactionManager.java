@@ -10,4 +10,6 @@ public interface TransactionManager {
     Transaction newTransactionReadWrite();
 
     Transaction current();
+
+    boolean hasCurrent();
 }

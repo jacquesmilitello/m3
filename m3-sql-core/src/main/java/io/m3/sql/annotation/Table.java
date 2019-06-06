@@ -25,4 +25,9 @@ public @interface Table {
      */
     boolean immutable() default false;
 
+    /**
+     * enable support of page in repository
+     */
+    boolean pageable() default false;
+
 }

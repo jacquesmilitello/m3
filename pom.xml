@@ -15,12 +15,12 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
 		<org.slf4j.version>1.7.25</org.slf4j.version>
-		<org.apache.logging.log4j.version>2.11.1</org.apache.logging.log4j.version>
+		<org.apache.logging.log4j.version>2.11.2</org.apache.logging.log4j.version>
 
-		<com.google.guava.version>27.0.1-jre</com.google.guava.version>
+		<com.google.guava.version>27.1-jre</com.google.guava.version>
 
-		<org.junit.jupiter.version>5.3.1</org.junit.jupiter.version>
-		<com.h2database.version>1.4.197</com.h2database.version>
+		<org.junit.jupiter.version>5.4.1</org.junit.jupiter.version>
+		<com.h2database.version>1.4.199</com.h2database.version>
 		<org.mockito.version>2.23.4</org.mockito.version>
 
 		<org.openjdk.jmh.version>1.21</org.openjdk.jmh.version>
@@ -89,13 +89,12 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.8.0</version>
+					<version>3.8.1</version>
 					<configuration>
 						<source>${maven.compiler.source}</source>
 						<target>${maven.compiler.target}</target>
 						<encoding>UTF-8</encoding>
 						<fork>true</fork>
-						<proc>none</proc>
 						<compilerArgs>
 							<arg>-Xlint</arg>
 						</compilerArgs>
@@ -115,11 +114,13 @@
 	
 	<modules>
 		<module>m3-util</module>
-		<module>m3-util-jmh</module>
+		<!--module>m3-util-jmh</module-->
         <module>m3-sql-core</module>
+		<module>m3-sql-spring</module>
 		<module>m3-sql-apt</module>
 		<module>m3-sql-examples</module>
 		<module>m3-test</module>
         <module>m3-sql-bench</module>
     </modules>
+
 </project>

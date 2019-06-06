@@ -22,4 +22,9 @@ public class TestDialect implements Dialect {
     public void wrap(Appendable appendable, SqlColumn targetColumn, boolean alias) {
 
     }
+
+    @Override
+    public String range(int offset, int limit) {
+        return null;
+    }
 }

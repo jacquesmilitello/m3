@@ -1,0 +1,53 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>io.m3</groupId>
+		<artifactId>m3</artifactId>
+		<version>0.2.0</version>
+	</parent>
+
+	<artifactId>m3-event</artifactId>
+	<version>0.1.0</version>
+	<packaging>pom</packaging>
+
+	<name>m3-event</name>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.1</version>
+					<configuration>
+						<source>${maven.compiler.source}</source>
+						<target>${maven.compiler.target}</target>
+						<encoding>UTF-8</encoding>
+						<fork>true</fork>
+						<compilerArgs>
+							<arg>-Xlint</arg>
+						</compilerArgs>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.22.2</version>
+					<configuration>
+						<testFailureIgnore>false</testFailureIgnore>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<modules>
+		<module>m3-core</module>
+		<module>m3-core-apt</module>
+		<module>m3-core-examples</module>
+	</modules>
+
+</project>

@@ -7,6 +7,7 @@ import java.sql.SQLException;
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
+@SuppressWarnings("serial")
 public final class InsertMapperException extends M3SqlException{
 
     public InsertMapperException(String sql, InsertMapper<?> im, Object o, SQLException cause) {

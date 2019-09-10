@@ -1,18 +1,24 @@
 package io.m3.sql.apt;
 
-import io.m3.sql.apt.model.PojoDescriptor;
-import io.m3.sql.jdbc.Mapper;
-import io.m3.sql.jdbc.MapperWithAutoIncrement;
+import static io.m3.sql.apt.Helper.analyse;
+import static io.m3.sql.apt.Helper.hasAutoIncrementPK;
+import static io.m3.sql.apt.Helper.toUpperCase;
+import static io.m3.sql.apt.Helper.writeGenerated;
+import static io.m3.sql.apt.Helper.writeNewLine;
+import static io.m3.sql.apt.Helper.writePackage;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.Map;
 
-import static io.m3.sql.apt.Helper.*;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
+
+import io.m3.sql.apt.model.PojoDescriptor;
+import io.m3.sql.jdbc.Mapper;
+import io.m3.sql.jdbc.MapperWithAutoIncrement;
 
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>

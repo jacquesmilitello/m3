@@ -6,7 +6,6 @@ import java.sql.Statement;
 import org.flywaydb.core.Flyway;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -54,10 +53,10 @@ class JoinTableTest {
 		res1.setId(1);
 		res1.setName("/api/1.0/{id}");
 		
-		RoleAbstractRepository repository = new RoleAbstractRepository(database) {
+		AbstractRoleRepository repository = new AbstractRoleRepository(database) {
         };
         
-        ResourceAbstractRepository resourceRepository = new ResourceAbstractRepository(database) {
+        AbstractResourceRepository resourceRepository = new AbstractResourceRepository(database) {
         };
 
         try (Transaction tx = database.transactionManager().newTransactionReadWrite()) {

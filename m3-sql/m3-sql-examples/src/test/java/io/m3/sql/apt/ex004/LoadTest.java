@@ -57,7 +57,7 @@ class LoadTest {
                 // read header
                 CsvLine line = reader.line();
 
-                SalesRecordAbstractRepository recordAbstractRepository = new SalesRecordAbstractRepository(database) {
+                AbstractSalesRecordRepository recordAbstractRepository = new AbstractSalesRecordRepository(database) {
                 };
 
                 int i = 0;

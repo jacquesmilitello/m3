@@ -11,11 +11,13 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 
+import io.m3.sql.annotation.AutoIncrement;
 import io.m3.sql.annotation.BusinessKey;
 import io.m3.sql.annotation.Column;
 import io.m3.sql.annotation.Database;
 import io.m3.sql.annotation.Flyway;
 import io.m3.sql.annotation.PrimaryKey;
+import io.m3.sql.annotation.Sequence;
 import io.m3.sql.annotation.Table;
 import io.m3.sql.apt.log.Logger;
 import io.m3.sql.apt.log.LoggerFactory;
@@ -95,28 +97,41 @@ public class FlywayGenerator {
 
 		StringBuilder builder = new StringBuilder();
 		builder.append("CREATE TABLE ");
-		builder.append(table.value());
+		builder.append(fd.wrap(table.value()));
 		builder.append(" (");
 		
 		StringBuilder primaryKey = new StringBuilder();
 		primaryKey.append("PRIMARY KEY (");
-
+		String sequence = null;
+		
 		for (PojoPropertyDescriptor id : descriptor.ids()) {
 			builder.append("\n   ");
 			PrimaryKey anno = id.getter().getAnnotation(PrimaryKey.class);
-			builder.append(anno.value());
+			builder.append(fd.wrap(anno.value()));
 			builder.append("   ");
-			builder.append(fd.toSqlType(id.getter().getReturnType().toString(), id.getter().getAnnotation(Column.class)));
+			
+			AutoIncrement autoIncrement = id.getter().getAnnotation(AutoIncrement.class);
+			if (autoIncrement != null) {
+				builder.append(fd.autoIncrementType(id.getter().getReturnType().toString(), id.getter().getAnnotation(Column.class)));
+			} else {
+				builder.append(fd.toSqlType(id.getter().getReturnType().toString(), id.getter().getAnnotation(Column.class)));
+			}
 			builder.append(",");
 			
-			primaryKey.append(anno.value()).append("),");
+			primaryKey.append(fd.wrap(anno.value())).append("),");
+			
+			if (id.getter().getAnnotation(Sequence.class) != null) {
+				sequence = generateSequence(id.getter().getAnnotation(Sequence.class), fd);
+				logger.info("generate sequence " + id.getter().getAnnotation(Sequence.class));
+			}
+			
 		}
 		primaryKey.deleteCharAt(primaryKey.length()-1).append(')');
 
 		for (PojoPropertyDescriptor col : descriptor.properties()) {
 			builder.append("\n   ");
 			Column anno = col.getter().getAnnotation(Column.class);
-			builder.append(anno.value());
+			builder.append(fd.wrap(anno.value()));
 			for (int i = anno.value().length() ; i < 24 ; i++) {
 				builder.append(' ');	
 			}
@@ -145,10 +160,21 @@ public class FlywayGenerator {
 		
 		writer.append(builder.toString());
 		
+		if (sequence != null) {
+			writer.append("\n\n");
+			writer.append(sequence);
+			writer.append("\n\n");
+		}
+		
 		if (businessKeys.size() > 0) {
 			generateUniqueIndex(table, businessKeys, writer);
 		}
 		
+		
+	}
+
+	private String generateSequence(Sequence sequence, FlywayDialect fd) {
+		return "CREATE SEQUENCE " + fd.wrap(sequence.value())  + ";";
 		
 	}
 

@@ -3,6 +3,7 @@ package io.m3.sql.apt.model;
 import io.m3.sql.annotation.BusinessKey;
 
 import javax.lang.model.element.Element;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,6 +17,11 @@ public final class PojoDescriptor {
         this.element = element;
         this.idDescriptors = idDescriptors;
         this.propertyDescriptors = propertyDescriptors;
+    }
+    
+    public String getPackage() {
+    	String fcqn = fullyQualidiedClassName();
+    	return fcqn.substring(0, fcqn.lastIndexOf('.'));
     }
 
     public String fullyQualidiedClassName() {

@@ -4,7 +4,6 @@ import io.m3.sql.annotation.AutoIncrement;
 import io.m3.sql.annotation.PrimaryKey;
 import io.m3.sql.apt.model.PojoDescriptor;
 import io.m3.sql.apt.model.PojoPropertyDescriptor;
-import io.m3.sql.id.Identifier;
 import io.m3.sql.id.NoIdentifierGenerator;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -14,7 +13,6 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.DeclaredType;
 import java.io.IOException;
 import java.io.Writer;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

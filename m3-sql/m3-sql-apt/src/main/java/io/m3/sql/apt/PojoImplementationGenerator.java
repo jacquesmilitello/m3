@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 import io.m3.sql.apt.log.Logger;

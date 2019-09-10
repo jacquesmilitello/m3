@@ -1,4 +1,4 @@
-package io.m3.sql.apt;
+package io.m3.sql.apt.ex002;
 
 
 import static com.google.common.collect.ImmutableList.of;
@@ -19,9 +19,9 @@ import org.junit.jupiter.api.Test;
 
 import io.m3.sql.Database;
 import io.m3.sql.Dialect;
+import io.m3.sql.apt.ex002.AbstractTeacherRepository;
 import io.m3.sql.apt.ex002.Module;
 import io.m3.sql.apt.ex002.Teacher;
-import io.m3.sql.apt.ex002.TeacherAbstractRepository;
 import io.m3.sql.impl.DatabaseImpl;
 import io.m3.sql.jdbc.PreparedStatementSetter;
 import io.m3.sql.jdbc.ResultSetMappers;
@@ -128,7 +128,7 @@ class TeacherTest {
 
     }
 
-    private static class TeacherRepository extends TeacherAbstractRepository {
+    private static class TeacherRepository extends AbstractTeacherRepository {
 
         private final String countAll;
 

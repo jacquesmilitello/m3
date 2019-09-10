@@ -1,4 +1,4 @@
-package io.m3.sql.apt;
+package io.m3.sql.apt.ex001;
 
 
 import static com.google.common.collect.ImmutableList.of;
@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import io.m3.sql.Database;
 import io.m3.sql.Dialect;
+import io.m3.sql.apt.ex001.AbstractStudentRepository;
 import io.m3.sql.apt.ex001.Student;
-import io.m3.sql.apt.ex001.StudentAbstractRepository;
 import io.m3.sql.builder.Order;
 import io.m3.sql.impl.DatabaseImpl;
 import io.m3.sql.jdbc.PreparedStatementSetter;
@@ -58,7 +58,7 @@ class StudentTest {
     @Test
     void test001() throws Exception {
 
-        StudentAbstractRepository repository = new StudentAbstractRepository(database) {
+    	AbstractStudentRepository repository = new AbstractStudentRepository(database) {
         };
 
         try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
@@ -145,7 +145,7 @@ class StudentTest {
 
     }
 
-    private static class StudentRepository extends StudentAbstractRepository {
+    private static class StudentRepository extends AbstractStudentRepository {
 
         private final String countAll;
         private final String countAllGroupBy;

@@ -8,7 +8,6 @@ import java.util.function.Function;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 
-import io.m3.sql.annotation.FlywayConfiguration;
 import io.m3.sql.annotation.GlobalConfiguration;
 import io.m3.sql.apt.log.Logger;
 import io.m3.sql.apt.log.LoggerFactory;

@@ -1,11 +1,18 @@
 package io.m3.sql.apt.ex002;
 
-import io.m3.sql.annotation.*;
-import io.m3.sql.id.SequenceGenerator4Long;
-
 import java.sql.Timestamp;
 
-@Table( value = "teacher")
+import io.m3.sql.annotation.BusinessKey;
+import io.m3.sql.annotation.Column;
+import io.m3.sql.annotation.CreateTimestamp;
+import io.m3.sql.annotation.Flyway;
+import io.m3.sql.annotation.PrimaryKey;
+import io.m3.sql.annotation.Sequence;
+import io.m3.sql.annotation.Table;
+import io.m3.sql.annotation.UpdateTimestamp;
+import io.m3.sql.id.SequenceGenerator4Long;
+
+@Table( value = "teacher", flyway = @Flyway(version = "1.0.0.002" , description = "init_schema"))
 public interface Teacher {
 
     @PrimaryKey(value = "id", generator = SequenceGenerator4Long.class)
@@ -32,7 +39,7 @@ public interface Teacher {
 
     void setCreationTimestamp(Timestamp timestamp);
 
-    @Column("update_ts")
+    @Column(value = "update_ts", nullable = true)
     @UpdateTimestamp
     Timestamp getUpdateTimestamp();
 

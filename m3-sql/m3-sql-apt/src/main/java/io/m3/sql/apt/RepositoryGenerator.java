@@ -54,7 +54,7 @@ final class RepositoryGenerator implements Generator {
     }
 
     private void generate(ProcessingEnvironment env, PojoDescriptor descriptor) throws IOException {
-        JavaFileObject object = env.getFiler().createSourceFile(descriptor.fullyQualidiedClassName() + "AbstractRepository");
+        JavaFileObject object = env.getFiler().createSourceFile(descriptor.getPackage() + ".Abstract" + descriptor.simpleName() +"Repository");
         Writer writer = object.openWriter();
 
         writeHeader(writer, env, descriptor);
@@ -112,8 +112,8 @@ final class RepositoryGenerator implements Generator {
 
         writeGenerated(writer, RepositoryGenerator.class.getName());
 
-        writer.write("public abstract class ");
-        writer.write(descriptor.simpleName() + "AbstractRepository");
+        writer.write("public abstract class Abstract");
+        writer.write(descriptor.simpleName() + "Repository");
         writer.write(" extends ");
         writer.write(Repository.class.getName());
         writer.write(" {");
@@ -163,8 +163,8 @@ final class RepositoryGenerator implements Generator {
     }
 
     private static void writeConstructor(Writer writer, PojoDescriptor descriptor) throws IOException {
-        writer.write("    protected ");
-        writer.write(descriptor.simpleName() + "AbstractRepository(");
+        writer.write("    protected Abstract");
+        writer.write(descriptor.simpleName() + "Repository(");
         writer.write(Database.class.getName());
         writer.write(" database){");
         writeNewLine(writer);

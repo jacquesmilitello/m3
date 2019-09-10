@@ -30,9 +30,9 @@ import org.openjdk.jmh.runner.options.VerboseMode;
 
 import io.m3.sql.Database;
 import io.m3.sql.Dialect;
+import io.m3.sql.bench.pojo.AbstractPersonRepository;
 import io.m3.sql.bench.pojo.Factory;
 import io.m3.sql.bench.pojo.Person;
-import io.m3.sql.bench.pojo.PersonAbstractRepository;
 import io.m3.sql.bench.pojo.PersonJPA;
 import io.m3.sql.impl.DatabaseImpl;
 import io.m3.sql.tx.Transaction;
@@ -51,7 +51,7 @@ public class InsertBench {
 
     private static final Database DATABASE;
 
-    private static final PersonAbstractRepository PERSON_ABSTRACT_REPOSITORY;
+    private static final AbstractPersonRepository PERSON_ABSTRACT_REPOSITORY;
 
     private static final int MAX = 10000;
 
@@ -73,7 +73,7 @@ public class InsertBench {
 
         DATABASE = new DatabaseImpl(ds, Dialect.Name.H2, new TransactionManagerImpl(ds), "", new io.m3.sql.bench.pojo.Module("bench", ""));
 
-        PERSON_ABSTRACT_REPOSITORY = new PersonAbstractRepository(DATABASE) {
+        PERSON_ABSTRACT_REPOSITORY = new AbstractPersonRepository(DATABASE) {
         };
     }
 

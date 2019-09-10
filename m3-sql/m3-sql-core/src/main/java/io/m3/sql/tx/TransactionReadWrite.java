@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,31 +29,16 @@ final class TransactionReadWrite extends AbstractTransaction {
     }
 
     @Override
-    public void commit() {
-
-        checkActive();
-
-        try {
-            getConnection().commit();
-        } catch (SQLException cause) {
-            throw new M3TransactionException(M3TransactionException.Type.COMMIT,"failed to commit transaction", cause);
-        } finally {
-            deactivate();
-            getTransactionManager().clear();
-        }
+    protected void doCommit() throws SQLException {
+        getConnection().commit();
     }
 
     @Override
-    public Timestamp timestamp() {
-        return null;
-    }
-
-    @Override
-    public M3PreparedStatement write(String sql) {
+    public PreparedStatement write(String sql) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("WRITE : [{}]", sql);
         }
-        return new M3PreparedStatementImpl(preparedStatement(sql, this.insertUpdate));
+        return preparedStatement(sql, this.insertUpdate);
     }
 
   /*  @Override

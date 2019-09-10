@@ -39,26 +39,37 @@ final class M3PreparedStatementImpl implements M3PreparedStatement {
     @Override
     public ResultSet executeQuery(String sql) throws SQLException {
         try (TransactionSpan span = tracer.executeQuery(sql)){
-            return this.ps.executeQuery(sql);
-        } catch (SQLException cause) {
-            tracer.exeception(cause);
-            throw cause;
+            try {
+                return this.ps.executeQuery(sql);
+            } catch (SQLException cause) {
+                span.exception(cause);
+                throw cause;
+            }
         }
     }
 
     @Override
     public int executeUpdate(String sql) throws SQLException {
         try (TransactionSpan span = tracer.executeUpdate(sql)){
-             return this.ps.executeUpdate(sql);
-         } catch (SQLException cause) {
-            tracer.exeception(cause);
-            throw cause;
+            try {
+                return this.ps.executeUpdate(sql);
+            } catch (SQLException cause) {
+                span.exception(cause);
+                throw cause;
+            }
         }
     }
 
     @Override
     public void close() throws SQLException {
-        this.ps.close();
+        try (TransactionSpan span = tracer.sqlClose()){
+            try {
+                this.ps.close();
+            } catch (SQLException cause) {
+                span.exception(cause);
+                throw cause;
+            }
+        }
     }
 
     @Override
@@ -98,7 +109,14 @@ final class M3PreparedStatementImpl implements M3PreparedStatement {
 
     @Override
     public void cancel() throws SQLException {
-        this.ps.cancel();
+        try (TransactionSpan span = tracer.cancel()){
+            try {
+                this.ps.cancel();
+            } catch (SQLException cause) {
+                span.exception(cause);
+                throw cause;
+            }
+        }
     }
 
     @Override

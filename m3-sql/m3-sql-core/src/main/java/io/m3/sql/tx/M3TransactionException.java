@@ -26,7 +26,12 @@ public final class M3TransactionException extends M3SqlException {
     }
 
     public M3TransactionException(Type type, String message, SQLException cause) {
-        super( message, cause);
+        super(message, cause);
+        this.type = type;
+    }
+
+     public M3TransactionException(Type type, SQLException cause) {
+        super(cause);
         this.type = type;
     }
 

@@ -10,7 +10,6 @@
 	</parent>
 
 	<artifactId>m3-sql</artifactId>
-	<version>0.1.0</version>
 	<packaging>pom</packaging>
 
 	<name>m3-sql</name>

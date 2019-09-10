@@ -35,7 +35,7 @@ final class TransactionReadWrite extends AbstractTransaction {
         checkActive();
 
         try {
-            this.connection.commit();
+            getConnection().commit();
         } catch (SQLException cause) {
             throw new M3TransactionException(M3TransactionException.Type.COMMIT,"failed to commit transaction", cause);
         } finally {

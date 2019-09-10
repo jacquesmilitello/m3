@@ -29,18 +29,31 @@ final class M3PreparedStatementImpl implements M3PreparedStatement {
 
     private final PreparedStatement ps;
 
-    M3PreparedStatementImpl(PreparedStatement ps) {
+    private final TransactionTracer tracer;
+
+    M3PreparedStatementImpl(PreparedStatement ps, TransactionLog tl) {
         this.ps = ps;
+        this.tracer = tl.getTransactionTracer();
     }
 
     @Override
     public ResultSet executeQuery(String sql) throws SQLException {
-        return this.ps.executeQuery(sql);
+        try (TransactionSpan span = tracer.executeQuery(sql)){
+            return this.ps.executeQuery(sql);
+        } catch (SQLException cause) {
+            tracer.exeception(cause);
+            throw cause;
+        }
     }
 
     @Override
     public int executeUpdate(String sql) throws SQLException {
-        return this.ps.executeUpdate(sql);
+        try (TransactionSpan span = tracer.executeUpdate(sql)){
+             return this.ps.executeUpdate(sql);
+         } catch (SQLException cause) {
+            tracer.exeception(cause);
+            throw cause;
+        }
     }
 
     @Override

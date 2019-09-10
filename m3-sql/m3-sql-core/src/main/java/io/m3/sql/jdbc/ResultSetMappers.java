@@ -1,11 +1,5 @@
 package io.m3.sql.jdbc;
 
-import io.m3.sql.Dialect;
-import io.m3.sql.M3SqlException;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 /**
  * Created by jmilitello on 30/03/2017.
  */

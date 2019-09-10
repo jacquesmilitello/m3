@@ -21,9 +21,9 @@ abstract class AbstractTransaction implements Transaction {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTransaction.class);
 
-    protected final Connection connection;
-
     private final TransactionManagerImpl transactionManager;
+
+    private final Connection connection;
 
     private boolean active;
 
@@ -31,11 +31,14 @@ abstract class AbstractTransaction implements Transaction {
 
     private final List<Runnable> hooks;
 
+    private final TransactionLog transactionLog;
+
     protected AbstractTransaction(TransactionManagerImpl transactionManager, Connection connection) {
         this.transactionManager = transactionManager;
         this.connection = connection;
         this.active = true;
         this.hooks = new ArrayList<>();
+        this.transactionLog = new TransactionLog(this);
     }
 
     @Override
@@ -64,7 +67,7 @@ abstract class AbstractTransaction implements Transaction {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("select({})", sql);
         }
-        return new M3PreparedStatementImpl(preparedStatement(sql, this.select));
+        return new M3PreparedStatementImpl(preparedStatement(sql, this.select), transactionLog);
     }
 
     @Override

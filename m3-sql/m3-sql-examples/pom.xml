@@ -1,83 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>m3</artifactId>
-        <groupId>io.m3</groupId>
-        <version>0.2.0</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>m3</artifactId>
+		<groupId>io.m3</groupId>
+		<version>0.2.0</version>
+	</parent>
 
-    <artifactId>m3-sql-examples</artifactId>
+	<modelVersion>4.0.0</modelVersion>
 
-    <dependencies>
+	<artifactId>m3-sql-examples</artifactId>
 
-        <dependency>
-            <groupId>io.m3</groupId>
-            <artifactId>m3-sql-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+	<dependencies>
 
-        <dependency>
-            <groupId>io.m3</groupId>
-            <artifactId>m3-test</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+		<dependency>
+			<groupId>io.m3</groupId>
+			<artifactId>m3-sql-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>io.m3</groupId>
+			<artifactId>m3-test</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>5.2.4</version>
-        </dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+		</dependency>
 
-        <dependency>
-            <groupId>io.m3</groupId>
-            <artifactId>m3-sql-apt</artifactId>
-            <version>${project.version}</version>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+			<version>5.2.4</version>
+		</dependency>
 
-    </dependencies>
+		<dependency>
+			<groupId>io.m3</groupId>
+			<artifactId>m3-sql-apt</artifactId>
+			<version>${project.version}</version>
+			<optional>true</optional>
+		</dependency>
 
-    <!-- build>
+	</dependencies>
 
-        <plugins>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/target/generated-sources/annotations</directory>
+									<filtering>false</filtering>
+									<includes>
+										<include>**/*.sql</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
-            <plugin>
-                <groupId>org.bsc.maven</groupId>
-                <artifactId>maven-processor-plugin</artifactId>
-                <version>3.3.3</version>
-                <executions>
-                    <execution>
-                        <id>process</id>
-                        <goals>
-                            <goal>process</goal>
-                        </goals>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <processors>
-                                <processor>io.m3.sql.apt.SqlProcessor</processor>
-                            </processors>
-                        </configuration>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>io.m3</groupId>
-                        <artifactId>m3-sql-apt</artifactId>
-                        <version>${project.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-
-        </plugins>
-
-    </build-->
+	<!-- build> <plugins> <plugin> <groupId>org.bsc.maven</groupId> <artifactId>maven-processor-plugin</artifactId> 
+		<version>3.3.3</version> <executions> <execution> <id>process</id> <goals> 
+		<goal>process</goal> </goals> <phase>generate-sources</phase> <configuration> 
+		<processors> <processor>io.m3.sql.apt.SqlProcessor</processor> </processors> 
+		</configuration> </execution> </executions> <dependencies> <dependency> <groupId>io.m3</groupId> 
+		<artifactId>m3-sql-apt</artifactId> <version>${project.version}</version> 
+		</dependency> </dependencies> </plugin> </plugins> </build -->
 
 </project>

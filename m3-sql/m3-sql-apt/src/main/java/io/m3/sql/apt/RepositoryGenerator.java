@@ -12,7 +12,6 @@ import io.m3.sql.apt.model.PojoPropertyDescriptor;
 import io.m3.sql.domain.Page;
 import io.m3.sql.domain.Pageable;
 import io.m3.sql.expression.AggregateFunctions;
-import io.m3.sql.expression.Expression;
 import io.m3.sql.expression.Expressions;
 import io.m3.sql.id.NoIdentifierGenerator;
 import io.m3.sql.id.SequenceGenerator;
@@ -33,7 +32,6 @@ import static io.m3.sql.apt.Helper.toUpperCase;
 import static io.m3.sql.apt.Helper.writeGenerated;
 import static io.m3.sql.apt.Helper.writeNewLine;
 import static io.m3.sql.apt.Helper.writePackage;
-import static io.m3.sql.expression.Expressions.eq;
 
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>

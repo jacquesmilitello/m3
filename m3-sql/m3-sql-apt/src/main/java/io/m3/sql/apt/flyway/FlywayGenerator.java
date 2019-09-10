@@ -3,7 +3,9 @@ package io.m3.sql.apt.flyway;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.FileObject;
@@ -25,6 +27,8 @@ import io.m3.sql.apt.util.Tuple;
 public class FlywayGenerator {
 
 	private final Logger logger;
+	
+	private Map<String, Tuple<FileObject,Writer>> holders = new HashMap<>();
 
 	public FlywayGenerator() {
 		logger = LoggerFactory.getInstance().getLogger(FlywayGenerator.class);
@@ -60,7 +64,13 @@ public class FlywayGenerator {
 			}
 		});
 
-		
+		holders.forEach((filename, tuple) -> {
+			try {
+				tuple.getY().close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 
 
@@ -68,11 +78,19 @@ public class FlywayGenerator {
 
 		List<Column> businessKeys = new ArrayList<>();
 		
-		FileObject object = env.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "db.migration",
-				"V" + flyway.version() + "__" + flyway.description() + ".sql");
-
-		Writer writer = object.openWriter();
-
+		String filename = "V" + flyway.version() + "__" + flyway.description() + ".sql";
+		
+		Tuple<FileObject, Writer> tuple = holders.get(filename);
+		
+		if (tuple == null) {
+			FileObject object = env.getFiler().createResource(StandardLocation.SOURCE_OUTPUT, "db.migration", filename);	
+			Writer writer = object.openWriter();
+			tuple = new Tuple<>(object, writer);
+			this.holders.put(filename, tuple);
+		}
+		
+		
+		Writer writer = tuple.getY();
 		Table table = descriptor.element().getAnnotation(Table.class);
 
 		StringBuilder builder = new StringBuilder();
@@ -132,7 +150,6 @@ public class FlywayGenerator {
 		}
 		
 		
-		writer.close();
 	}
 
 	private void generateUniqueIndex(Table table, List<Column> businessKeys, Writer writer) throws IOException {
@@ -148,7 +165,7 @@ public class FlywayGenerator {
 			builder.append(bk.value()).append(',');
 		});
 		builder.deleteCharAt(builder.length() - 1);
-		builder.append(");");
+		builder.append(");\n");
 		
 		writer.append(builder.toString());
 	}

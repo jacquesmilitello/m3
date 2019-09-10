@@ -1,8 +1,7 @@
 package io.m3.sql.tx;
 
-import io.m3.sql.jdbc.M3PreparedStatement;
-
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 
 /**
@@ -25,7 +24,7 @@ final class TransactionReadOnly extends AbstractTransaction {
     }
 
     @Override
-    public M3PreparedStatement write(String sql) {
+    public PreparedStatement write(String sql) {
         throw new M3TransactionException(M3TransactionException.Type.READ_ONLY, "READ ONLY Transaction : write(" + sql + ")");
     }
 

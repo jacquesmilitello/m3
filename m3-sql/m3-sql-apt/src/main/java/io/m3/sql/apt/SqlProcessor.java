@@ -1,5 +1,6 @@
 package io.m3.sql.apt;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +18,10 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
 import io.m3.sql.annotation.GlobalConfiguration;
+import io.m3.sql.annotation.JoinTable;
 import io.m3.sql.annotation.Table;
 import io.m3.sql.apt.analyser.GlobalConfigurationAnalyser;
+import io.m3.sql.apt.analyser.JoinTableAnalyser;
 import io.m3.sql.apt.analyser.SqlInterfaceAnalyser;
 import io.m3.sql.apt.flyway.FlywayGenerator;
 import io.m3.sql.apt.log.Logger;
@@ -75,6 +78,11 @@ public final class SqlProcessor extends AbstractProcessor {
                 .stream()
                 .map(new SqlInterfaceAnalyser())
                 .collect(Collectors.toList());
+        
+        List<PojoDescriptor> joinTableDescriptors = roundEnvironment.getElementsAnnotatedWith(JoinTable.class)
+                .stream()
+                .map(new JoinTableAnalyser(descriptors))
+                .collect(Collectors.toList());
 
         logger.info("Result Analysis -----------------------------------------------------------------------------------------");
         logger.info("---------------------------------------------------------------------------------------------------------");
@@ -82,17 +90,27 @@ public final class SqlProcessor extends AbstractProcessor {
         descriptors.forEach(pojoDesc -> {
         	logger.info("\t->" + pojoDesc);
         });
+        logger.info("Number of Joint Table Pojo(s) found : " + joinTableDescriptors.size());
+        descriptors.forEach(pojoDesc -> {
+        	logger.info("\t->" + pojoDesc);
+        });
         logger.info("---------------------------------------------------------------------------------------------------------");
         
         
+        List<PojoDescriptor> all = new ArrayList<>();
+        all.addAll(descriptors);
+        all.addAll(joinTableDescriptors);
+        
+        
         Map<String, Object> properties = new HashMap<>();
-        new PojoImplementationGenerator().generate(this.processingEnv, descriptors, properties);
-        new PojoFactoryGenerator().generate(this.processingEnv, descriptors, properties);
-        new PojoDescriptorGenerator().generate(this.processingEnv, descriptors, properties);
-        new RepositoryGenerator().generate(this.processingEnv, descriptors, properties);
-        new MapperGenerator().generate(this.processingEnv, descriptors, properties);
-        new PojoMapperFactoryGenerator().generate(this.processingEnv, descriptors, properties);
-        new ModuleGenerator().generate(this.processingEnv, descriptors, properties);
+        new PojoImplementationGenerator().generate(this.processingEnv, all, properties);
+        new PojoFactoryGenerator().generate(this.processingEnv, all, properties);
+        new PojoDescriptorGenerator().generate(this.processingEnv, all, properties);
+        new RepositoryGenerator().generate(this.processingEnv, all, properties);
+        new MapperGenerator().generate(this.processingEnv, all, properties);
+        new PojoMapperFactoryGenerator().generate(this.processingEnv, all, properties);
+        new ModuleGenerator().generate(this.processingEnv, all, properties);
+        
         
         Set<? extends Element> elements = roundEnvironment.getElementsAnnotatedWith(GlobalConfiguration.class);
 
@@ -100,7 +118,7 @@ public final class SqlProcessor extends AbstractProcessor {
 
         List<GlobalConfigurationDescriptor> configs = roundEnvironment.getElementsAnnotatedWith(GlobalConfiguration.class)
             	.stream()
-            	.map(new GlobalConfigurationAnalyser(descriptors))
+            	.map(new GlobalConfigurationAnalyser(all))
             	.collect(Collectors.toList());
         
         new FlywayGenerator().generate(this.processingEnv, configs);

@@ -1,5 +1,7 @@
 package io.m3.sql.apt.ex005;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.sql.Connection;
 import java.sql.Statement;
 
@@ -59,23 +61,40 @@ class JoinTableTest {
         AbstractResourceRepository resourceRepository = new AbstractResourceRepository(database) {
         };
 
+        RoleResourceRepository roleResourceRepository = new RoleResourceRepository(database);
+        
         try (Transaction tx = database.transactionManager().newTransactionReadWrite()) {
         	repository.insert(r1);
         	repository.insert(r2);
         	resourceRepository.insert(res1);
-        	
-        	// Associate.link(r1, res1);
-        	// Associate.unlink(r1, res1);
-        	
-        	// Associate.list(res1Id) -> list Role
-        	// Associate.list(roleId) -> list Resource
-        	
-        	//  Associate.list(res1Id) by BK
-        	
+        	roleResourceRepository.link(r1, res1);
         	tx.commit();
         }
         
+        try (Transaction tx = database.transactionManager().newTransactionReadOnly()) {
+        	
+        	
+        	RoleResource roleResource = roleResourceRepository.findById(1, 1);
+        	assertNotNull(roleResource);
+        	
+        }
         
 
 	}
+	
+	public static class RoleResourceRepository extends AbstractRoleResourceRepository {
+
+		public RoleResourceRepository(Database database) {
+			super(database);
+		}
+
+		public void link(Role r1, Resource res1) {
+			RoleResource rr = Factory.newRoleResource();
+			rr.setResourceId(res1.getId());
+			rr.setRoleId(r1.getId());
+			insert(rr);
+		}
+		
+	}
+	
 }

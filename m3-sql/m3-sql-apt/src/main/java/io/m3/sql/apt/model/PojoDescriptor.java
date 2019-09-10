@@ -1,6 +1,8 @@
 package io.m3.sql.apt.model;
 
 import io.m3.sql.annotation.BusinessKey;
+import io.m3.sql.annotation.JoinTable;
+import io.m3.sql.annotation.Table;
 
 import javax.lang.model.element.Element;
 
@@ -49,6 +51,14 @@ public final class PojoDescriptor {
         return propertyDescriptors.stream()
                 .filter(ppd -> ppd.getter().getAnnotation(BusinessKey.class) != null)
                 .collect(Collectors.toList());
+    }
+    
+    public Table getTable() {
+    	return this.element.getAnnotation(Table.class);
+    }
+    
+    public JoinTable getJoinTable() {
+    	return this.element.getAnnotation(JoinTable.class);
     }
 
 	@Override

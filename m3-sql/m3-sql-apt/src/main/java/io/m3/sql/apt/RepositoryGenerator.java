@@ -1,12 +1,33 @@
 package io.m3.sql.apt;
 
+import static io.m3.sql.apt.Helper.extractPrimaryKeyGenerator;
+import static io.m3.sql.apt.Helper.hasAutoIncrementPK;
+import static io.m3.sql.apt.Helper.preparedStatementSetter;
+import static io.m3.sql.apt.Helper.toUpperCase;
+import static io.m3.sql.apt.Helper.writeGenerated;
+import static io.m3.sql.apt.Helper.writeNewLine;
+import static io.m3.sql.apt.Helper.writePackage;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.tools.JavaFileObject;
+
 import com.google.common.collect.ImmutableList;
+
 import io.m3.sql.Database;
 import io.m3.sql.Repository;
 import io.m3.sql.annotation.AutoIncrement;
 import io.m3.sql.annotation.CreateTimestamp;
+import io.m3.sql.annotation.JoinTable;
 import io.m3.sql.annotation.Table;
 import io.m3.sql.annotation.UpdateTimestamp;
+import io.m3.sql.apt.log.Logger;
+import io.m3.sql.apt.log.LoggerFactory;
 import io.m3.sql.apt.model.PojoDescriptor;
 import io.m3.sql.apt.model.PojoPropertyDescriptor;
 import io.m3.sql.domain.Page;
@@ -16,28 +37,17 @@ import io.m3.sql.expression.Expressions;
 import io.m3.sql.id.NoIdentifierGenerator;
 import io.m3.sql.id.SequenceGenerator;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
-import java.io.IOException;
-import java.io.Writer;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.Map;
-
-import static io.m3.sql.apt.Helper.extractPrimaryKeyGenerator;
-import static io.m3.sql.apt.Helper.hasAutoIncrementPK;
-import static io.m3.sql.apt.Helper.preparedStatementSetter;
-import static io.m3.sql.apt.Helper.toUpperCase;
-import static io.m3.sql.apt.Helper.writeGenerated;
-import static io.m3.sql.apt.Helper.writeNewLine;
-import static io.m3.sql.apt.Helper.writePackage;
-
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
 final class RepositoryGenerator implements Generator {
 
+	private final Logger logger;
+
+	RepositoryGenerator() {
+		logger = LoggerFactory.getInstance().getLogger(PojoImplementationGenerator.class);
+	}
+	
     @Override
     public void generate(ProcessingEnvironment processingEnvironment, List<PojoDescriptor> descriptors, Map<String, Object> properties) {
 
@@ -45,8 +55,8 @@ final class RepositoryGenerator implements Generator {
         descriptors.forEach(t -> {
             try {
                 generate(processingEnvironment, t);
-            } catch (IOException cause) {
-                processingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "PojoImplementationGenerator -> IOException for [" + t + "] -> [" + cause.getMessage() + "]");
+            } catch (Exception cause) {
+            	logger.error("PojoImplementationGenerator -> IOException for [" + t + "] -> [" + cause.getMessage() + "]", cause);
             }
         });
 
@@ -103,12 +113,10 @@ final class RepositoryGenerator implements Generator {
         writer.write("import static ");
         writer.write(Expressions.class.getName() + ".eq;");
         writeNewLine(writer);
+        writer.write("import static ");
+        writer.write(Expressions.class.getName() + ".and;");
+        writeNewLine(writer);
 
-        if (descriptor.businessKeys().size() > 1) {
-            writer.write("import static ");
-            writer.write(Expressions.class.getName() + ".and;");
-            writeNewLine(writer);
-        }
 
         writeGenerated(writer, RepositoryGenerator.class.getName());
 
@@ -130,7 +138,7 @@ final class RepositoryGenerator implements Generator {
             writeNewLine(writer);
         }
 
-        if (!descriptor.element().getAnnotation(Table.class).immutable()) {
+        if (descriptor.getTable() != null && !descriptor.getTable().immutable()) {
             writer.write("    private final String findByIdForUpdate;");
             writeNewLine(writer);
             writer.write("    private final String insert;");
@@ -138,10 +146,22 @@ final class RepositoryGenerator implements Generator {
             writer.write("    private final String update;");
             writeNewLine(writer);
         }
+        
+        JoinTable joinTable = descriptor.element().getAnnotation(JoinTable.class);
+        if (joinTable != null) {
+            writer.write("    private final String insert;");
+            writeNewLine(writer);
+        }
 
 
         for (PojoPropertyDescriptor id : descriptor.ids()) {
             Class<?> identifier = extractPrimaryKeyGenerator(id.getter());
+            
+            if (identifier == null ) {
+            	// case of JointTable
+            	continue;
+            }
+            
             if (identifier.isAssignableFrom(NoIdentifierGenerator.class)) {
                 continue;
             }
@@ -185,21 +205,37 @@ final class RepositoryGenerator implements Generator {
 
     private static void generateFindById(Writer writer, PojoDescriptor descriptor) throws IOException {
         writer.write("        this.findById = select(ALL).from(TABLE).where(");
+      
         if (descriptor.ids().size() == 1) {
             writer.write("eq(");
             writer.write(toUpperCase(descriptor.ids().get(0).name()));
-            writer.write(")).build();");
+            writer.write(")");
         } else {
+        	StringBuilder builder = new StringBuilder();
+        	builder.append("and(");
+        	for (PojoPropertyDescriptor id : descriptor.ids()) {
+        		builder.append("eq(");
+        		builder.append(toUpperCase(id.name()));
+        		builder.append("),");
+        	}
+        	builder.deleteCharAt(builder.length() - 1);
+        	builder.append(")");
+        	writer.write(builder.toString());
         }
+        writer.write(").build();");
         writeNewLine(writer);
 
     }
 
     private static void generateFindByIdForUpdate(Writer writer, PojoDescriptor descriptor) throws IOException {
 
-        if (descriptor.element().getAnnotation(Table.class).immutable()) {
+    	if (descriptor.getTable() != null && descriptor.getTable().immutable()) {
             return;
         }
+    	
+    	if (descriptor.getJoinTable() != null) {
+    		return;
+    	}
 
         writer.write("        this.findByIdForUpdate = select(ALL).from(TABLE).where(");
         if (descriptor.ids().size() == 1) {
@@ -241,7 +277,8 @@ final class RepositoryGenerator implements Generator {
     }
 
     private static void generateInsert(Writer writer, PojoDescriptor descriptor) throws IOException {
-        if (descriptor.element().getAnnotation(Table.class).immutable()) {
+        
+    	if (descriptor.getTable() != null && descriptor.getTable().immutable()) {
             return;
         }
 
@@ -258,9 +295,13 @@ final class RepositoryGenerator implements Generator {
 
     private static void generateUpdate(Writer writer, PojoDescriptor descriptor) throws IOException {
 
-        if (descriptor.element().getAnnotation(Table.class).immutable()) {
+    	if (descriptor.getTable() != null && descriptor.getTable().immutable()) {
             return;
         }
+    	
+    	if (descriptor.getJoinTable() != null) {
+    		return;
+    	}
 
         writer.write("        this.update = update(TABLE, COLUMNS, IDS).build();");
         writeNewLine(writer);
@@ -286,25 +327,34 @@ final class RepositoryGenerator implements Generator {
         writer.write(descriptor.element().toString());
         writer.write(" findById(");
 
-        if (descriptor.ids().size() == 1) {
-            writer.write(descriptor.ids().get(0).getter().getReturnType().toString());
-            writer.write(" id");
-        } else {
-
+        StringBuilder builder = new StringBuilder();
+        StringBuilder ps = new StringBuilder();
+        int i = 1;
+        for (PojoPropertyDescriptor id : descriptor.ids()) {
+        	builder.append(id.getter().getReturnType().toString());
+        	builder.append(' ');
+        	builder.append(id.name());
+        	builder.append(',');
+        	
+        	ps.append("           ");
+        	ps.append("ps.");
+        	ps.append(preparedStatementSetter(id.getter().getReturnType().toString()));
+        	ps.append("(");
+        	ps.append(i++);
+        	ps.append(", ");
+        	ps.append(id.name());
+        	ps.append(");\n");
         }
+        builder.deleteCharAt(builder.length() - 1);
 
+        writer.write(builder.toString());
         writer.write(") {");
         writeNewLine(writer);
-        writer.write("        return executeSelect(this.findById, ps -> ");
+        writer.write("        return executeSelect(this.findById, ps -> {");
 
-        if (descriptor.ids().size() == 1) {
-            PojoPropertyDescriptor ppd = descriptor.ids().get(0);
-            writer.write("ps.");
-            writer.write(preparedStatementSetter(ppd.getter().getReturnType().toString()));
-            writer.write("(1, id)");
-        } else {
-
-        }
+        writeNewLine(writer);
+        writer.write(ps.toString());
+        writer.write("        }");
         writer.write(", Mappers.");
         writer.write(toUpperCase(descriptor.element().getSimpleName().toString()));
         writer.write(");");
@@ -317,6 +367,10 @@ final class RepositoryGenerator implements Generator {
 
     private static void generateMethodFindByIdForUpdate(Writer writer, PojoDescriptor descriptor) throws IOException {
 
+    	if (descriptor.getJoinTable() != null) {
+    		return;
+    	}
+    	
         writeNewLine(writer);
         writer.write("    public final ");
         writer.write(descriptor.element().toString());
@@ -339,7 +393,7 @@ final class RepositoryGenerator implements Generator {
             writer.write(preparedStatementSetter(ppd.getter().getReturnType().toString()));
             writer.write("(1, id)");
         } else {
-
+        
         }
         writer.write(", Mappers.");
         writer.write(toUpperCase(descriptor.element().getSimpleName().toString()));
@@ -360,7 +414,7 @@ final class RepositoryGenerator implements Generator {
 
         for (PojoPropertyDescriptor id : descriptor.ids()) {
             Class<?> identifier = extractPrimaryKeyGenerator(id.getter());
-            if (identifier.isAssignableFrom(NoIdentifierGenerator.class)) {
+            if (identifier == null || identifier.isAssignableFrom(NoIdentifierGenerator.class)) {
                 continue;
             }
             if (SequenceGenerator.class.isAssignableFrom(identifier)) {
@@ -409,6 +463,10 @@ final class RepositoryGenerator implements Generator {
 
     private static void generateMethodUpdate(Writer writer, PojoDescriptor descriptor) throws IOException {
 
+    	if (descriptor.getJoinTable() != null) {
+    		return;
+    	}
+    	
         writeNewLine(writer);
         writer.write("    public final void update(");
         writer.write(descriptor.element().toString());
@@ -524,7 +582,13 @@ final class RepositoryGenerator implements Generator {
 
 
     private static void generateMethodPage(Writer writer, PojoDescriptor descriptor) throws IOException {
-        Table table = descriptor.element().getAnnotation(Table.class);
+        
+    	if (descriptor.getJoinTable() != null) {
+    		return;
+    	}
+    	
+    	Table table = descriptor.getTable();
+        
         if (!table.pageable()) {
             return;
         }

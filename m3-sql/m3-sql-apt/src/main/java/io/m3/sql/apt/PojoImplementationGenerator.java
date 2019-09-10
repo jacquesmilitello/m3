@@ -45,8 +45,6 @@ final class PojoImplementationGenerator implements Generator {
 
     private void generate(ProcessingEnvironment env, PojoDescriptor descriptor) throws IOException {
     	
-    	//logger.info("generate " + descriptor.fullyQualidiedClassName() + "Impl");
-    	
         JavaFileObject object = env.getFiler().createSourceFile(descriptor.fullyQualidiedClassName() + "Impl");
         Writer writer = object.openWriter();
 

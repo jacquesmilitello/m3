@@ -1,9 +1,6 @@
 package io.m3.sql.tx;
 
-import io.m3.sql.jdbc.M3PreparedStatement;
-
 import java.sql.PreparedStatement;
-import java.sql.Timestamp;
 
 final class TransactionNested implements Transaction {
 

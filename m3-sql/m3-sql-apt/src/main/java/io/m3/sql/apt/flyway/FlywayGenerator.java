@@ -16,6 +16,8 @@ import io.m3.sql.annotation.BusinessKey;
 import io.m3.sql.annotation.Column;
 import io.m3.sql.annotation.Database;
 import io.m3.sql.annotation.Flyway;
+import io.m3.sql.annotation.JoinColumn;
+import io.m3.sql.annotation.JoinTable;
 import io.m3.sql.annotation.PrimaryKey;
 import io.m3.sql.annotation.Sequence;
 import io.m3.sql.annotation.Table;
@@ -38,7 +40,12 @@ public class FlywayGenerator {
 
 	public void generate(ProcessingEnvironment env, List<GlobalConfigurationDescriptor> configs) {
 		for (GlobalConfigurationDescriptor gcd : configs) {
-			generate(env, gcd);
+			try {
+				generate(env, gcd);
+			} catch (Exception cause) {
+				logger.error("", cause);
+			}
+			
 		}
 	}
 	
@@ -52,7 +59,12 @@ public class FlywayGenerator {
 				
 				logger.info("Generate for DB [" + db + "]");
 				
-				Flyway flyway = pojo.element().getAnnotation(Table.class).flyway();
+				Flyway flyway;
+				if (pojo.getTable() != null) {
+					flyway = pojo.getTable().flyway();
+				} else {
+					flyway = pojo.getJoinTable().flyway();
+				}
 				
 				if (flyway.version().trim().length() > 0) {
 					FlywayDialect fd = FlywayDialects.get(db);
@@ -93,8 +105,22 @@ public class FlywayGenerator {
 		
 		
 		Writer writer = tuple.getY();
-		Table table = descriptor.element().getAnnotation(Table.class);
+		
+		
+		if (descriptor.getTable() != null) {
+			generateTable(descriptor, fd, businessKeys, writer, descriptor.getTable());
+			return;
+		}
+		
+		if (descriptor.getJoinTable() != null) {
+			generateJoinTable(descriptor, fd, businessKeys, writer, descriptor.getJoinTable());
+			return;
+		}
+		
+	}
 
+	private void generateTable(PojoDescriptor descriptor, FlywayDialect fd, List<Column> businessKeys, Writer writer,
+			Table table) throws IOException {
 		StringBuilder builder = new StringBuilder();
 		builder.append("CREATE TABLE ");
 		builder.append(fd.wrap(table.value()));
@@ -169,8 +195,66 @@ public class FlywayGenerator {
 		if (businessKeys.size() > 0) {
 			generateUniqueIndex(table, businessKeys, writer);
 		}
+	}
+	
+	private void generateJoinTable(PojoDescriptor descriptor, FlywayDialect fd, List<Column> businessKeys, Writer writer,
+			JoinTable table) throws IOException {
+		StringBuilder builder = new StringBuilder();
+		builder.append("CREATE TABLE ");
+		builder.append(fd.wrap(table.value()));
+		builder.append(" (");
 		
+		StringBuilder primaryKey = new StringBuilder();
+		primaryKey.append("PRIMARY KEY (");
 		
+		for (PojoPropertyDescriptor id : descriptor.ids()) {
+			builder.append("\n   ");
+			JoinColumn anno = id.getter().getAnnotation(JoinColumn.class);
+			builder.append(fd.wrap(anno.value()));
+			builder.append("   ");
+			
+			// TODO search joinColumn to id target;
+			
+			//builder.append(fd.toSqlType(id.getter().getReturnType().toString(), id.getter().getAnnotation(JoinColumn.class)));
+			builder.append(" INT" );
+			builder.append(",");
+			
+			primaryKey.append(fd.wrap(anno.value())).append(",");
+			
+		}
+		primaryKey.deleteCharAt(primaryKey.length()-1).append("),");
+
+		for (PojoPropertyDescriptor col : descriptor.properties()) {
+			builder.append("\n   ");
+			Column anno = col.getter().getAnnotation(Column.class);
+			builder.append(fd.wrap(anno.value()));
+			for (int i = anno.value().length() ; i < 24 ; i++) {
+				builder.append(' ');	
+			}
+			String type = fd.toSqlType(col.getter().getReturnType().toString(), anno);
+			builder.append(type);
+			for (int i = type.length() ; i < 16 ; i++) {
+				builder.append(' ');	
+			}
+			if (!anno.nullable()) {
+				builder.append(" NOT NULL");
+			}
+			
+			builder.append(",");
+			
+			BusinessKey bk = col.getter().getAnnotation(BusinessKey.class);
+			if (bk != null) {
+				businessKeys.add(anno);
+			}
+		}
+
+		builder.append("\n   ");
+		builder.append(primaryKey);
+		
+		builder.deleteCharAt(builder.length() - 1);
+		builder.append("\n);\n");
+		
+		writer.append(builder.toString());
 	}
 
 	private String generateSequence(Sequence sequence, FlywayDialect fd) {

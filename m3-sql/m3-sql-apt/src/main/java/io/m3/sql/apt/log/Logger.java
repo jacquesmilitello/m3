@@ -41,6 +41,7 @@ public final class Logger {
 		cause.printStackTrace(new PrintWriter(writer));
 		try {
 			this.writer.write(builder.toString());
+			this.writer.flush();
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}

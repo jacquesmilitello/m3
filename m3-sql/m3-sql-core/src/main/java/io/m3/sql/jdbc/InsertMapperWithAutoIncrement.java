@@ -1,6 +1,5 @@
 package io.m3.sql.jdbc;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 

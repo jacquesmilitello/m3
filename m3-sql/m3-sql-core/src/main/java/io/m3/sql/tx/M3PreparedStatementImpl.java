@@ -29,23 +29,47 @@ final class M3PreparedStatementImpl implements M3PreparedStatement {
 
     private final PreparedStatement ps;
 
-    M3PreparedStatementImpl(PreparedStatement ps) {
+    private final TransactionTracer tracer;
+
+    M3PreparedStatementImpl(PreparedStatement ps, TransactionLog tl) {
         this.ps = ps;
+        this.tracer = tl.getTransactionTracer();
     }
 
     @Override
     public ResultSet executeQuery(String sql) throws SQLException {
-        return this.ps.executeQuery(sql);
+        try (TransactionSpan span = tracer.executeQuery(sql)){
+            try {
+                return this.ps.executeQuery(sql);
+            } catch (SQLException cause) {
+                span.exception(cause);
+                throw cause;
+            }
+        }
     }
 
     @Override
     public int executeUpdate(String sql) throws SQLException {
-        return this.ps.executeUpdate(sql);
+        try (TransactionSpan span = tracer.executeUpdate(sql)){
+            try {
+                return this.ps.executeUpdate(sql);
+            } catch (SQLException cause) {
+                span.exception(cause);
+                throw cause;
+            }
+        }
     }
 
     @Override
     public void close() throws SQLException {
-        this.ps.close();
+        try (TransactionSpan span = tracer.sqlClose()){
+            try {
+                this.ps.close();
+            } catch (SQLException cause) {
+                span.exception(cause);
+                throw cause;
+            }
+        }
     }
 
     @Override
@@ -85,7 +109,14 @@ final class M3PreparedStatementImpl implements M3PreparedStatement {
 
     @Override
     public void cancel() throws SQLException {
-        this.ps.cancel();
+        try (TransactionSpan span = tracer.cancel()){
+            try {
+                this.ps.cancel();
+            } catch (SQLException cause) {
+                span.exception(cause);
+                throw cause;
+            }
+        }
     }
 
     @Override

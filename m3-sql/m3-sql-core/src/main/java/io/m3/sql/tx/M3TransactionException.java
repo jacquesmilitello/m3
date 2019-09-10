@@ -9,9 +9,12 @@ import java.sql.SQLException;
  */
 public final class M3TransactionException extends M3SqlException {
 
+    /**
+	 *  Generated seruql UID.
+	 */
+	private static final long serialVersionUID = -7353728745195001854L;
 
-
-    public enum Type {
+	public enum Type {
         CREATE, NO,  READ_ONLY, CONNECTION_ISOLATION, NOT_ACTIVE, COMMIT , ROLLBACK
     }
 
@@ -23,7 +26,12 @@ public final class M3TransactionException extends M3SqlException {
     }
 
     public M3TransactionException(Type type, String message, SQLException cause) {
-        super( message, cause);
+        super(message, cause);
+        this.type = type;
+    }
+
+     public M3TransactionException(Type type, SQLException cause) {
+        super(cause);
         this.type = type;
     }
 

@@ -2,6 +2,7 @@ package io.m3.sql.tx;
 
 import io.m3.sql.jdbc.M3PreparedStatement;
 
+import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 
 final class TransactionNested implements Transaction {
@@ -33,17 +34,12 @@ final class TransactionNested implements Transaction {
     }
 
     @Override
-    public Timestamp timestamp() {
-        return this.parent.timestamp();
-    }
-
-    @Override
-    public M3PreparedStatement read(String sql) {
+    public PreparedStatement read(String sql) {
         return this.parent.read(sql);
     }
 
     @Override
-    public M3PreparedStatement write(String sql) {
+    public PreparedStatement write(String sql) {
         return this.parent.write(sql);
     }
 

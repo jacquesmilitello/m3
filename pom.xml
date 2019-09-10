@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -10,9 +11,9 @@
 	<name>m3</name>
 
 	<properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 
 		<org.slf4j.version>1.7.28</org.slf4j.version>
 		<org.apache.logging.log4j.version>2.12.1</org.apache.logging.log4j.version>
@@ -21,6 +22,7 @@
 		<org.junit.jupiter.version>5.5.1</org.junit.jupiter.version>
 		<com.h2database.version>1.4.199</com.h2database.version>
 		<org.mockito.version>3.0.0</org.mockito.version>
+		<org.flywaydb.version>6.0.1</org.flywaydb.version>
 
 		<org.openjdk.jmh.version>1.21</org.openjdk.jmh.version>
 
@@ -72,6 +74,12 @@
 				<version>${com.google.guava.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-core</artifactId>
+				<version>${org.flywaydb.version}</version>
+			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 
@@ -92,22 +100,22 @@
 						</compilerArgs>
 					</configuration>
 				</plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.2</version>
-                    <configuration>
-                        <testFailureIgnore>false</testFailureIgnore>
-                    </configuration>
-                </plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.22.2</version>
+					<configuration>
+						<testFailureIgnore>false</testFailureIgnore>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
-	
+
 	<modules>
 		<module>m3-core</module>
 		<module>m3-sql</module>
-		<!--  module>m3-event</module-->
+		<!-- module>m3-event</module -->
 	</modules>
 
 </project>

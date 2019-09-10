@@ -5,7 +5,10 @@ import static io.m3.sql.tx.M3TransactionException.Type.CREATE;
 import static io.m3.sql.tx.M3TransactionException.Type.NO;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.sql.DataSource;
 
@@ -30,8 +33,17 @@ public final class TransactionManagerImpl implements TransactionManager {
 
     private boolean enforceReadOnly = false;
 
+    private final BiFunction<PreparedStatement, TransactionLog,PreparedStatement> decorator;
+
+    private static final BiFunction<PreparedStatement, TransactionLog,PreparedStatement> IDENTITY_DECORATOR = (ps,log) -> ps;
+
     public TransactionManagerImpl(DataSource dataSource) {
+        this(dataSource, IDENTITY_DECORATOR);
+    }
+
+    public TransactionManagerImpl(DataSource dataSource, BiFunction<PreparedStatement, TransactionLog, PreparedStatement> decorator) {
         this.dataSource = dataSource;
+        this.decorator = decorator;
         try (Connection conn = dataSource.getConnection()) {
             this.defaultIsolationLevel = conn.getTransactionIsolation();
         } catch (SQLException cause) {
@@ -119,6 +131,10 @@ public final class TransactionManagerImpl implements TransactionManager {
         this.transactions.set(tx);
         return tx;
         //return new SqlTransactionStatus(transaction, definition.isReadOnly());
+    }
+
+    BiFunction<PreparedStatement, TransactionLog,PreparedStatement> getDecorator() {
+        return this.decorator;
     }
 
     /*

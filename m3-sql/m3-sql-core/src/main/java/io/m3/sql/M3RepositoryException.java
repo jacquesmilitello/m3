@@ -9,7 +9,7 @@ import io.m3.sql.M3SqlException;
 public final class M3RepositoryException extends M3SqlException {
 
     public enum Type {
-        PREPARED_STATEMENT, PREPARED_STATEMENT_SETTER
+        PREPARED_STATEMENT, PREPARED_STATEMENT_SETTER, INSERT_GENERATED_KEYS
     }
 
     private final Type type;

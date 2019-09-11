@@ -10,26 +10,25 @@ import javax.tools.StandardLocation;
 public final class LoggerFactory {
 
 	private static final LoggerFactory INSTANCE = new LoggerFactory();
-	
+
 	private Writer writer;
-	
+
 	private LoggerFactory() {
 	}
 
 	public static LoggerFactory getInstance() {
 		return INSTANCE;
 	}
-	
+
 	public void init(ProcessingEnvironment env) {
 		FileObject object;
 		try {
 			object = env.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "io.m3.report","Output.txt");
 			writer = object.openWriter();
 		} catch (IOException cause) {
-			cause.printStackTrace();
 			throw new IllegalStateException(cause);
 		}
-    	
+
 	}
 
 	public void close() {
@@ -45,6 +44,6 @@ public final class LoggerFactory {
 	public Logger getLogger(Class<?> clazz) {
 		return new Logger(clazz, this.writer);
 	}
-	
-	
+
+
 }

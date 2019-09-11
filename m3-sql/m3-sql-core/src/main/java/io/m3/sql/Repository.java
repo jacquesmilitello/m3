@@ -278,8 +278,8 @@ public abstract class Repository {
             if (rs.next()) {
                 im.setId(pojo, rs);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException cause) {
+            throw new M3RepositoryException(M3RepositoryException.Type.INSERT_GENERATED_KEYS, "Failed to getGeneratedKeys", cause);
         }
 
     }

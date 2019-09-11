@@ -34,7 +34,7 @@ final class FlywayDialectH2 implements FlywayDialect {
 
 	@Override
 	public String wrap(String value) {
-		return "`" + value + "`";
+		return "\"" + value + "\"";
 	}
 
 	@Override
@@ -47,9 +47,9 @@ final class FlywayDialectH2 implements FlywayDialect {
 		if (long.class.getName().equals(javaType) || Long.class.getName().equals(javaType)) {
 			return "BIGINT auto_increment";
 		}
-		
+
 		LoggerFactory.getInstance().getLogger(FlywayDialectH2.class).error("No sql AUTO INCREMENT type for java type [" + javaType + "]");
-		
+
 		return null;
 	}
 }

@@ -22,7 +22,7 @@
 		<org.junit.jupiter.version>5.5.1</org.junit.jupiter.version>
 		<com.h2database.version>1.4.199</com.h2database.version>
 		<org.mockito.version>3.0.0</org.mockito.version>
-		<org.flywaydb.version>5.2.4</org.flywaydb.version>
+		<org.flywaydb.version>6.0.2</org.flywaydb.version>
 
 		<org.openjdk.jmh.version>1.21</org.openjdk.jmh.version>
 

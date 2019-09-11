@@ -42,7 +42,7 @@ class LoadTest {
 
     @BeforeEach
     void before() throws Exception {
-        ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
+        ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1", "sa", "");
         database = new DatabaseImpl(ds, Dialect.Name.H2, new TransactionManagerImpl(ds), "", new io.m3.sql.apt.ex004.Module("ex004", ""));
         Flyway flyway = Flyway.configure().dataSource(ds).load();
         flyway.migrate();

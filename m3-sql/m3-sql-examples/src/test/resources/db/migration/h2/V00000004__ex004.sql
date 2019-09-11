@@ -1,4 +1,4 @@
-CREATE TABLE `sales_record` (
+CREATE TABLE "sales_record" (
   id             bigint,
   region         VARCHAR(64),
   country        VARCHAR(32),
@@ -14,6 +14,6 @@ CREATE TABLE `sales_record` (
   total_revenue  double,
   total_cost     double,
   total_profit   double,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY ("id")
 );
 

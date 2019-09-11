@@ -36,7 +36,7 @@ class TeacherTest {
 
     @BeforeEach
     void before() {
-        ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", "");
+        ds = JdbcConnectionPool.create("jdbc:h2:mem:test;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1", "sa", "");
         database = new DatabaseImpl(ds, Dialect.Name.H2, new TransactionManagerImpl(ds), "", new Module("ex002", ""));
         repository = new TeacherRepository(database);
         Flyway flyway = Flyway.configure().dataSource(ds).load();

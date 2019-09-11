@@ -27,7 +27,7 @@ public final class M3PlatformTransactionManager implements PlatformTransactionMa
             LOGGER.trace("getTransaction({})", transactionDefinition);
         }
 
-        if (transactionManager.hasCurrent()) {
+        if (transactionManager.current() != null) {
             // get TX inside another TX
             return new M3TransactionStatus(transactionManager.current(), transactionDefinition.isReadOnly(), false);
         }

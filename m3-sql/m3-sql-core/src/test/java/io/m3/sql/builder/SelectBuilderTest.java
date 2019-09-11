@@ -5,8 +5,11 @@ import io.m3.sql.Module;
 import io.m3.sql.desc.SqlColumn;
 import io.m3.sql.desc.SqlSingleColumn;
 import io.m3.sql.desc.SqlTable;
+import io.m3.test.LoggerInstancePostProcessor;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 import static com.google.common.collect.ImmutableList.of;
@@ -18,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(LoggerInstancePostProcessor.class)
 class SelectBuilderTest {
 
     private static final SqlTable TABLE_T1 = new SqlTable("T1", "a");

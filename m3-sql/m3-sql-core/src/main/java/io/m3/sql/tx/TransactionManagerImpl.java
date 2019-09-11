@@ -2,7 +2,7 @@ package io.m3.sql.tx;
 
 import static io.m3.sql.tx.M3TransactionException.Type.CONNECTION_ISOLATION;
 import static io.m3.sql.tx.M3TransactionException.Type.CREATE;
-import static io.m3.sql.tx.M3TransactionException.Type.NO;
+import static io.m3.sql.tx.M3TransactionException.Type.NO_CURRENT_TRANSACTION;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,8 +24,6 @@ public final class TransactionManagerImpl implements TransactionManager {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(TransactionManagerImpl.class);
 
-    private final ThreadLocal<Transaction> transactions = new ThreadLocal<>();
-
     private final DataSource dataSource;
 
     private final int defaultIsolationLevel;
@@ -46,7 +44,7 @@ public final class TransactionManagerImpl implements TransactionManager {
         try (Connection conn = dataSource.getConnection()) {
             this.defaultIsolationLevel = conn.getTransactionIsolation();
         } catch (SQLException cause) {
-            throw new M3TransactionException(CONNECTION_ISOLATION, "Cannot retreive default TransactionIsolationLevel", cause);
+            throw new M3TransactionException(CONNECTION_ISOLATION, cause);
         }
     }
 
@@ -66,28 +64,18 @@ public final class TransactionManagerImpl implements TransactionManager {
 
     @Override
     public Transaction current() {
-        Transaction transaction = this.transactions.get();
+        Transaction transaction = TransactionSynchronizationManager.currentTransaction();
         if (transaction == null) {
-            throw new M3TransactionException(NO, "...");
+            throw new M3TransactionException(NO_CURRENT_TRANSACTION);
         }
         return transaction;
-    }
-
-    @Override
-    public boolean hasCurrent() {
-        return this.transactions.get() != null;
-    }
-
-
-    void clear() {
-        this.transactions.remove();
     }
 
     public Transaction getTransaction(TransactionDefinition definition) throws M3TransactionException {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("getTransaction({})", definition);
         }
-        Transaction tx = transactions.get();
+        Transaction tx = TransactionSynchronizationManager.currentTransaction();
 
         if (tx != null) {
             //get TX inside another TX
@@ -97,10 +85,9 @@ public final class TransactionManagerImpl implements TransactionManager {
         final Connection conn;
         try {
             conn = dataSource.getConnection();
-            //prepareTransactionalConnection(conn, definition);
             conn.setAutoCommit(false);
         } catch (SQLException cause) {
-            throw new M3TransactionException(CREATE, "Error during Datasource.getConnection", cause);
+            throw new M3TransactionException(CREATE, cause);
         }
 
         if (definition.isReadOnly()) {
@@ -127,7 +114,7 @@ public final class TransactionManagerImpl implements TransactionManager {
                 }
             });
         }*/
-        this.transactions.set(tx);
+        TransactionSynchronizationManager.setTransaction(tx);
         return tx;
         //return new SqlTransactionStatus(transaction, definition.isReadOnly());
     }

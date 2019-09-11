@@ -11,5 +11,4 @@ public interface TransactionManager {
 
     Transaction current();
 
-    boolean hasCurrent();
 }

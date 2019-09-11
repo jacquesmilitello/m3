@@ -110,8 +110,8 @@ class RepositoryTest {
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadOnly()) {
-			M3RepositoryException ex = assertThrows(M3RepositoryException.class, () -> repo.executeSelect(builder.build(), pss, map));
-			assertEquals(M3RepositoryException.Type.PREPARED_STATEMENT, ex.getType());
+			M3TransactionException ex = assertThrows(M3TransactionException.class, () -> repo.executeSelect(builder.build(), pss, map));
+			assertEquals(M3TransactionException.Type.PREPARED_STATEMENT, ex.getType());
 			tx.rollback();
 		}
 		verify(conn).close();
@@ -213,7 +213,7 @@ class RepositoryTest {
 		SelectBuilder builder = repo.select(Pojos.FOLDER_ALL);
 		builder.from(Pojos.DESCRIPTOR_FOLDER.table());
 		try (Transaction tx = db.transactionManager().newTransactionReadWrite()) {
-			Assertions.assertThrows(M3RepositoryException.class, () -> repo.executeInsert(builder.build(), map, pojo));
+			assertThrows(M3TransactionException.class, () -> repo.executeInsert(builder.build(), map, pojo));
 			tx.rollback();
 		}
 

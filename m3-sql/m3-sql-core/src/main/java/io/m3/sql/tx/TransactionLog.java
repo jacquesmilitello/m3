@@ -26,7 +26,7 @@ final class TransactionLog  {
     public TransactionTracer getTransactionTracer() {
         return null;
     }
-
+ 
 	public TransactionSpan rollback() {
 		return null;
 	}

@@ -15,27 +15,33 @@ public final class M3TransactionException extends M3SqlException {
 	private static final long serialVersionUID = -7353728745195001854L;
 
 	public enum Type {
-        CREATE, NO,  READ_ONLY, CONNECTION_ISOLATION, NOT_ACTIVE, COMMIT , ROLLBACK
+		PREPARED_STATEMENT, CREATE, NO_CURRENT_TRANSACTION,  READ_ONLY, CONNECTION_ISOLATION, NOT_ACTIVE, COMMIT , ROLLBACK
     }
 
     private final Type type;
 
-    M3TransactionException(Type type, String message) {
-        super(message);
+    M3TransactionException(Type type, AbstractTransaction transaction, TransactionSpan span) {
+        super("");
         this.type = type;
     }
 
-    public M3TransactionException(Type type, String message, SQLException cause) {
-        super(message, cause);
-        this.type = type;
-    }
-
-     public M3TransactionException(Type type, SQLException cause) {
+    M3TransactionException(Type type, AbstractTransaction transaction, TransactionSpan span, SQLException cause) {
         super(cause);
         this.type = type;
     }
 
-    public Type getType() {
+    
+    M3TransactionException(Type type) {
+        super("");
+        this.type = type;
+    }
+
+     M3TransactionException(Type type, SQLException cause) {
+        super(cause);
+        this.type = type;
+    }
+
+	public Type getType() {
         return type;
     }
 

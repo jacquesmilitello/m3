@@ -1,5 +1,7 @@
 package io.m3.sql;
 
+import java.sql.SQLException;
+
 import io.m3.sql.M3SqlException;
 
 /**
@@ -8,19 +10,19 @@ import io.m3.sql.M3SqlException;
 @SuppressWarnings("serial")
 public final class M3RepositoryException extends M3SqlException {
 
-    public enum Type {
-        PREPARED_STATEMENT, PREPARED_STATEMENT_SETTER, INSERT_GENERATED_KEYS
-    }
+	public enum Type {
+		PREPARED_STATEMENT_SETTER, INSERT_GENERATED_KEYS, EXECUTE_QUERY, RESULT_SET_NEXT, RESULT_SET_MAPPER
+	}
 
-    private final Type type;
+	private final Type type;
 
-    public M3RepositoryException(Type type, String message, Exception exception) {
-        super(message, exception);
-        this.type = type;
-    }
+	public M3RepositoryException(Type type, SQLException exception) {
+		super(exception);
+		this.type = type;
+	}
 
-    public Type getType() {
-        return this.type;
-    }
+	public Type getType() {
+		return this.type;
+	}
 
 }

@@ -1,12 +1,11 @@
 package io.m3.sql.tx;
 
-
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
  */
-final class TransactionTracer  {
+final class TransactionTracer {
 
-    public TransactionSpan executeQuery(String sql) {
+	public TransactionSpan executeQuery(String sql) {
 		return null;
 	}
 
@@ -19,6 +18,10 @@ final class TransactionTracer  {
 	}
 
 	public TransactionSpan cancel() {
+		return null;
+	}
+
+	public TransactionSpan preparedStatement() {
 		return null;
 	}
 

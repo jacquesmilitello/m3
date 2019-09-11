@@ -1,8 +1,9 @@
 package io.m3.sql.tx;
 
-import io.m3.sql.M3RepositoryException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static io.m3.sql.tx.M3TransactionException.Type.COMMIT;
+import static io.m3.sql.tx.M3TransactionException.Type.NOT_ACTIVE;
+import static io.m3.sql.tx.M3TransactionException.Type.PREPARED_STATEMENT;
+import static io.m3.sql.tx.M3TransactionException.Type.ROLLBACK;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,6 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author <a href="mailto:jacques.militello@gmail.com">Jacques Militello</a>
@@ -88,16 +92,18 @@ abstract class AbstractTransaction implements Transaction {
     @Override
     public final void rollback() {
         try (TransactionSpan span = this.transactionLog.rollback()) {
-            checkActive();
+            
+        	if (!this.active) {
+                 throw new M3TransactionException(NOT_ACTIVE, this, span);
+            }
 
             try {
                 this.connection.rollback();
             } catch (SQLException cause) {
-                span.exception(cause);
-                throw new M3TransactionException(M3TransactionException.Type.ROLLBACK, cause);
+                throw new M3TransactionException(ROLLBACK, this, span, cause);
             } finally {
                 this.active = false;
-                transactionManager.clear();
+                TransactionSynchronizationManager.clear();
             }
         }
     }
@@ -105,15 +111,18 @@ abstract class AbstractTransaction implements Transaction {
      @Override
     public final void commit() {
         try (TransactionSpan span = this.transactionLog.commit()) {
-            checkActive();
+        	
+        	if (!this.active) {
+                throw new M3TransactionException(NOT_ACTIVE, this, span);
+            }
+        	
             try {
                 doCommit();
             } catch (SQLException cause) {
-                span.exception(cause);
-                throw new M3TransactionException(M3TransactionException.Type.COMMIT, cause);
+            	throw new M3TransactionException(COMMIT, this, span, cause);
             } finally {
                 this.active = false;
-                transactionManager.clear();
+                TransactionSynchronizationManager.clear();
             }
         }
     }
@@ -150,20 +159,14 @@ abstract class AbstractTransaction implements Transaction {
     protected final PreparedStatement preparedStatement(String sql, Map<String, PreparedStatement> cache) {
         PreparedStatement ps = cache.get(sql);
         if (ps == null) {
-            try {
-                ps = this.decorator.apply(this.connection.prepareStatement(sql, Statement.NO_GENERATED_KEYS), this.transactionLog);
-                cache.put(sql, ps);
-            } catch (SQLException cause) {
-                throw new M3RepositoryException(M3RepositoryException.Type.PREPARED_STATEMENT,"Failed to prepare statement for SQL [" + sql + "]", cause);
+        	try {
+        		ps = this.decorator.apply(this.connection.prepareStatement(sql, Statement.NO_GENERATED_KEYS), this.transactionLog);	
+        	} catch (SQLException cause) {
+            	throw new M3TransactionException(PREPARED_STATEMENT, this, null, cause);
             }
+            cache.put(sql, ps);
         }
         return ps;
-    }
-
-    protected final void checkActive() {
-        if (!this.active) {
-            throw new M3TransactionException(M3TransactionException.Type.NOT_ACTIVE, "");
-        }
     }
 
     protected final void deactivate() {

@@ -1,6 +1,10 @@
 package io.m3.sql;
 
 import static io.m3.sql.M3RepositoryException.Type.PREPARED_STATEMENT_SETTER;
+import static io.m3.sql.M3RepositoryException.Type.EXECUTE_QUERY;
+import static io.m3.sql.M3RepositoryException.Type.INSERT_GENERATED_KEYS;
+import static io.m3.sql.M3RepositoryException.Type.RESULT_SET_NEXT;
+import static io.m3.sql.M3RepositoryException.Type.RESULT_SET_MAPPER;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -87,20 +91,35 @@ public abstract class Repository {
         try {
             pss.set(ps);
         } catch (SQLException cause) {
-            throw new M3RepositoryException(PREPARED_STATEMENT_SETTER, sql, cause);
+            throw new M3RepositoryException(PREPARED_STATEMENT_SETTER, cause);
         }
         try (ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return mapper.map(this.database.dialect(), rs);
-            } else {
-                return null;
-            }
+            return map(rs, mapper, this.database.dialect());
         } catch (SQLException cause) {
-            throw new M3SqlException("executeSelect: cannot retrieve or map resultset", cause);
+            throw new M3RepositoryException(EXECUTE_QUERY, cause);
         }
-
     }
 
+    private static <T> T map(ResultSet rs, ResultSetMapper<T> mapper, Dialect dialect) {
+    	boolean value;
+    	
+    	try {
+			value = rs.next();
+		} catch (SQLException cause) {
+			throw new M3RepositoryException(RESULT_SET_NEXT, cause);
+		}
+    	
+    	if (value) {
+            try {
+				return mapper.map(dialect, rs);
+			} catch (SQLException cause) {
+				throw new M3RepositoryException(RESULT_SET_MAPPER, cause);
+			}
+        } else {
+            return null;
+        }
+    }
+    
     protected final <E> void executeBatchInsert(String sql, InsertMapper<E> im, List<E> pojos,
                                                 SequenceGenerator4Long generator) {
 
@@ -161,7 +180,7 @@ public abstract class Repository {
         try {
             rs = ps.executeQuery();
         } catch (SQLException cause) {
-            throw new M3SqlException("executeSelect: cannot retrieve or map resultset", cause);
+        	throw new M3RepositoryException(EXECUTE_QUERY, cause);
         }
 
         database.transactionManager().current().addHook(() -> {
@@ -179,13 +198,13 @@ public abstract class Repository {
                     if (!rs.next()) {
                         return false;
                     }
-                } catch (SQLException e1) {
-                    LOGGER.error("Error during resultSet.next() [{}]", sql);
+                } catch (SQLException cause) {
+                	throw new M3RepositoryException(RESULT_SET_NEXT, cause);
                 }
                 try {
                     action.accept(mapper.map(database.dialect(), rs));
-                } catch (SQLException e) {
-                    LOGGER.error("Error during mapping from DB [{}]", e);
+                } catch (SQLException cause) {
+                	throw new M3RepositoryException(RESULT_SET_MAPPER, cause);
                 }
                 return true;
             }
@@ -279,7 +298,7 @@ public abstract class Repository {
                 im.setId(pojo, rs);
             }
         } catch (SQLException cause) {
-            throw new M3RepositoryException(M3RepositoryException.Type.INSERT_GENERATED_KEYS, "Failed to getGeneratedKeys", cause);
+            throw new M3RepositoryException(INSERT_GENERATED_KEYS, cause);
         }
 
     }

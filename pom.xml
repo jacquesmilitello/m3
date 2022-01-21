@@ -20,7 +20,7 @@
 		<com.google.guava.version>28.0-jre</com.google.guava.version>
 
 		<org.junit.jupiter.version>5.5.1</org.junit.jupiter.version>
-		<com.h2database.version>1.4.199</com.h2database.version>
+		<com.h2database.version>2.1.210</com.h2database.version>
 		<org.mockito.version>3.0.0</org.mockito.version>
 		<org.flywaydb.version>6.0.2</org.flywaydb.version>
 
